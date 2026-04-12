@@ -1,0 +1,34 @@
+import { configureStore } from '@reduxjs/toolkit';
+import { courseApi } from './api/courseApi';
+import { enrollmentApi } from './api/enrollmentApi';
+import { aiTutorApi } from './api/aiTutorApi';
+import { assessmentApi } from './api/assessmentApi';
+import { gamificationApi } from './api/gamificationApi';
+import { dashboardApi } from './api/dashboardApi';
+import authReducer from './slices/authSlice';
+import uiReducer from './slices/uiSlice';
+
+export const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    ui: uiReducer,
+    [courseApi.reducerPath]: courseApi.reducer,
+    [enrollmentApi.reducerPath]: enrollmentApi.reducer,
+    [aiTutorApi.reducerPath]: aiTutorApi.reducer,
+    [assessmentApi.reducerPath]: assessmentApi.reducer,
+    [gamificationApi.reducerPath]: gamificationApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(
+      courseApi.middleware,
+      enrollmentApi.middleware,
+      aiTutorApi.middleware,
+      assessmentApi.middleware,
+      gamificationApi.middleware,
+      dashboardApi.middleware,
+    ),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
