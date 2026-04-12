@@ -1,7 +1,20 @@
 # AI Learning Platform — Frontend
 
+## Product Vision
+Build the most advanced AI-powered learning platform that surpasses Coursera, Udemy, and DeepLearning.AI. AI-native adaptive learning — not video courses with AI bolted on.
+
+## Core Requirements (UI Perspective)
+1. **Course Catalog**: Search, filter by difficulty/category/tags. Course cards with ratings, enrollment counts.
+2. **Course Detail**: Full module/topic/concept tree view. Enroll button.
+3. **Course Player**: Content viewer (text, video, code) + AI tutor chat side panel. Progress tracking per concept.
+4. **AI Tutor Chat**: Real-time WebSocket chat with GPT-4o. Context-aware, Socratic method.
+5. **Adaptive Assessments**: Quiz UI with multiple question types (MCQ, code, matching). Real-time feedback.
+6. **Gamification**: XP bar, streak counter, badge grid, leaderboard table.
+7. **Dashboard**: Student progress overview, weak areas, recommended next steps.
+8. **Auth**: Keycloak login/register. Role-based UI (student vs instructor vs admin).
+
 ## Project Overview
-AI-native adaptive learning platform UI. React SPA with course catalog, AI tutor chat, adaptive assessments, gamification dashboard, and real-time features.
+React SPA implementing all of the above.
 
 ## Tech Stack
 - **React 19**, **TypeScript 5.7**, **Vite 6**
@@ -99,3 +112,18 @@ src/
 - Use `useAppSelector` and `useAppDispatch` typed hooks from `store/hooks.ts`
 - File naming: PascalCase for components (`CourseCard.tsx`), camelCase for utilities (`courseApi.ts`)
 - Lucide icons imported individually: `import { BookOpen } from 'lucide-react'`
+
+## Current Status (April 2026)
+- **LIVE** on Vercel — deploys automatically from GitHub
+- Backend API connected via `VITE_API_URL` env var on Vercel
+- CORS configured on Railway backend to allow Vercel domain
+- **No courses displaying yet** — backend seed data not loaded (seed endpoint 500 error)
+- **No auth working** — Keycloak not deployed, login flow non-functional
+
+## Features Not Yet Implemented
+- User registration/login UI (needs Keycloak)
+- Instructor course creation UI
+- Admin dashboard pages
+- Real-time WebSocket notification integration
+- Course content beyond seed data
+- Mobile-responsive polish
