@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Course, Module, Topic, Concept } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Progress } from '@/components/ui/progress';
 import {
   ChevronDown,
   ChevronRight,
