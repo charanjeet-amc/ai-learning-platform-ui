@@ -137,6 +137,7 @@ export default function CoursePlayerPage() {
       >
         {aiPanelOpen && (
           <AITutorPanel
+            courseId={courseId!}
             conceptId={activeConceptId}
             conceptTitle={activeConcept?.title}
           />

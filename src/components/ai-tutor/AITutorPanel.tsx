@@ -15,11 +15,12 @@ interface ChatMessage {
 }
 
 interface AITutorPanelProps {
+  courseId: string;
   conceptId: string | null;
   conceptTitle?: string;
 }
 
-export default function AITutorPanel({ conceptId, conceptTitle }: AITutorPanelProps) {
+export default function AITutorPanel({ courseId, conceptId, conceptTitle }: AITutorPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState<string | undefined>();
@@ -47,20 +48,21 @@ export default function AITutorPanel({ conceptId, conceptTitle }: AITutorPanelPr
     setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
 
     try {
-      const response = await chat({
-        conceptId,
-        message: userMsg,
+      const result = await chat({
+        courseId,
+        conceptId: conceptId!,
+        query: userMsg,
         sessionId,
       }).unwrap();
 
-      setSessionId(response.sessionId);
+      setSessionId(result.sessionId);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: response.response,
-          hintLevel: response.hintLevel,
-          suggestedAction: response.suggestedAction,
+          content: result.message,
+          hintLevel: result.hintLevel,
+          suggestedAction: result.suggestedAction,
         },
       ]);
     } catch {

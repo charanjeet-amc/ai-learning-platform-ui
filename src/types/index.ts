@@ -103,17 +103,18 @@ export interface ModuleProgress {
 
 // ==================== AI Tutor ====================
 export interface AITutorRequest {
+  courseId: string;
   conceptId: string;
-  message: string;
+  query: string;
   sessionId?: string;
 }
 
 export interface AITutorResponse {
-  response: string;
+  message: string;
   sessionId: string;
+  responseType: string;
   hintLevel: number;
   conceptId: string;
-  masteryScore: number;
   suggestedAction: string;
 }
 
