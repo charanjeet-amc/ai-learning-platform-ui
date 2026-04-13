@@ -21,7 +21,6 @@ React SPA implementing all of the above.
 - **Tailwind CSS 3.4** + **shadcn/ui** (Radix primitives)
 - **Redux Toolkit 2.5** + **RTK Query** (API layer)
 - **React Router 7**, **Recharts** (charts), **Lucide** (icons)
-- **keycloak-js 26** (authentication)
 - **react-markdown** (content rendering)
 
 ## Commands
@@ -42,41 +41,54 @@ npm run lint           # eslint
 ```
 src/
 ├── components/
-│   ├── ai-tutor/          # ChatPanel, ChatMessage, SuggestedQuestions
-│   ├── assessment/        # QuizPanel, QuestionCard, ResultsSummary
-│   ├── course/            # CourseCard, CourseGrid, ModuleAccordion, ConceptCard, LearningUnitViewer
-│   ├── gamification/      # XPBar, StreakCounter, BadgeGrid, LeaderboardTable
-│   ├── layout/            # AppLayout, Sidebar, TopNav, MobileNav
+│   ├── ai-tutor/          # AITutorPanel — GPT-4o Socratic chat panel
+│   ├── assessment/        # QuizView, QuestionCard
+│   ├── course/            # CourseCard, CourseTree, ContentViewer
+│   ├── gamification/      # XPBar, StreakCounter, BadgeDisplay, LeaderboardTable
+│   ├── layout/            # AppLayout, Navbar (with auth state + logout)
 │   └── ui/                # shadcn primitives (button, card, input, progress, scroll-area, tabs)
 ├── lib/
-│   ├── keycloak.ts        # Keycloak instance & init config
-│   └── utils.ts           # cn() helper (clsx + tailwind-merge)
+│   └── utils.ts           # cn() helper, getDifficultyColor(), formatDuration()
 ├── pages/
 │   ├── HomePage.tsx        # Landing page
 │   ├── CourseCatalogPage.tsx  # Browse courses
-│   ├── CourseDetailPage.tsx   # Single course view with module tree
-│   ├── CoursePlayerPage.tsx   # Learning experience (content + AI tutor)
-│   ├── DashboardPage.tsx      # Student dashboard with progress
+│   ├── CourseDetailPage.tsx   # Single course with module tree + enroll/continue button
+│   ├── CoursePlayerPage.tsx   # 3-column: CourseTree | ContentViewer | AITutorPanel
+│   ├── LoginPage.tsx          # Login + Register form with validation
+│   ├── DashboardPage.tsx      # Student dashboard
 │   └── LeaderboardPage.tsx    # XP leaderboard
 ├── store/
 │   ├── api/               # RTK Query API slices
-│   │   ├── courseApi.ts       # GET /api/courses, GET /api/courses/:id
-│   │   ├── aiTutorApi.ts      # POST /api/ai-tutor/*
-│   │   ├── assessmentApi.ts   # Assessment endpoints
-│   │   ├── dashboardApi.ts    # Dashboard data
-│   │   ├── enrollmentApi.ts   # Enrollment endpoints
+│   │   ├── courseApi.ts       # courses, course tree, course progress
+│   │   ├── authApi.ts         # login, register mutations
+│   │   ├── authTypes.ts       # AuthResponse interface
+│   │   ├── aiTutorApi.ts      # POST /api/tutor/chat
+│   │   ├── assessmentApi.ts   # questions, submit answers
+│   │   ├── dashboardApi.ts    # dashboard data
+│   │   ├── enrollmentApi.ts   # enroll, unenroll, enrollment status
 │   │   └── gamificationApi.ts # XP, badges, leaderboard
 │   ├── slices/
-│   │   ├── authSlice.ts       # Auth state (Keycloak token, user info)
-│   │   └── uiSlice.ts        # UI state (sidebar, modals)
+│   │   ├── authSlice.ts       # Auth state (token, user info, setCredentials/logout)
+│   │   └── uiSlice.ts        # UI state (theme, sidebar, active concept)
 │   ├── hooks.ts           # Typed useAppSelector / useAppDispatch
-│   └── store.ts           # Redux store config with RTK Query middleware
+│   └── store.ts           # Redux store with all API middlewares
 ├── types/                 # TypeScript interfaces (Course, User, Module, etc.)
-├── App.tsx                # Router & layout setup
+├── App.tsx                # Router setup + auth restoration from localStorage
 ├── main.tsx               # Entry point
 ├── index.css              # Tailwind directives + custom CSS
 └── vite-env.d.ts          # Vite type declarations
 ```
+
+## Auth System
+- **No Keycloak** — uses self-issued HMAC-SHA256 JWT from backend
+- `authApi.ts`: `login` and `register` RTK Query mutations hitting `/api/public/auth/login` and `/api/public/auth/register`
+- `authSlice.ts`: stores token, userId, username, email, displayName, avatarUrl, roles
+- `LoginPage.tsx`: combined login/register form with validation + error handling (401, 409)
+- Auth token attached to all API calls via `prepareHeaders` in `courseApi.ts` baseQuery
+- Auth state persisted to `localStorage` (`auth_token`, `auth_user` keys)
+- Auth restored from localStorage on app startup in `App.tsx`
+- Navbar shows "Sign In" when logged out, username + logout icon when logged in
+- **Test users**: testuser1/testpass123, testuser2/testpass123
 
 ## API Layer
 - All API calls go through **RTK Query** slices in `src/store/api/`
@@ -101,9 +113,6 @@ src/
 | Variable | Description |
 |---|---|
 | `VITE_API_URL` | Backend API base URL (e.g., `https://ai-learning-platform-be-production.up.railway.app`) |
-| `VITE_KEYCLOAK_URL` | Keycloak server URL |
-| `VITE_KEYCLOAK_REALM` | Keycloak realm name |
-| `VITE_KEYCLOAK_CLIENT_ID` | Keycloak client ID |
 
 ## Conventions
 - Functional components only, no class components
@@ -113,17 +122,43 @@ src/
 - File naming: PascalCase for components (`CourseCard.tsx`), camelCase for utilities (`courseApi.ts`)
 - Lucide icons imported individually: `import { BookOpen } from 'lucide-react'`
 
-## Current Status (April 2026)
-- **LIVE** on Vercel — deploys automatically from GitHub
+## Current Status (April 13, 2026)
+- **LIVE** on Vercel — all pages working
 - Backend API connected via `VITE_API_URL` env var on Vercel
 - CORS configured on Railway backend to allow Vercel domain
-- **No courses displaying yet** — backend seed data not loaded (seed endpoint 500 error)
-- **No auth working** — Keycloak not deployed, login flow non-functional
+
+### Working Features (All Verified E2E)
+1. **Course catalog** — browse all published courses at `/courses`
+2. **Course detail** — `/courses/:id` shows modules/topics/concepts tree, enroll/continue button
+3. **Auth** — Register + Login at `/login`, JWT stored in localStorage, logout in navbar
+4. **Enrollment** — enroll from course detail, enrollment status persisted
+5. **Course player** — 3-column layout at `/courses/:id/learn`:
+   - LHS: CourseTree (modules → topics → concepts, expandable)
+   - Center: ContentViewer (concept header + learning unit content as Markdown)
+   - RHS: AITutorPanel (GPT-4o Socratic chat with quick prompts)
+6. **AI Tutor** — real-time chat, context-aware, session tracking
+
+### Important Frontend-Backend Field Mappings
+- `AITutorRequest`: `query` (not `message`), requires `courseId` + `conceptId`
+- `AITutorResponse`: `message` (not `response`), includes `sessionId`
+- `Course`: `estimatedDurationMinutes`, `createdByName`, `industryVertical`
+- `DifficultyLevel`: BEGINNER | EASY | MEDIUM | HARD | ADVANCED (no INTERMEDIATE/EXPERT)
+- `LearningUnit`: `contentType` (not `type`)
+- Seed content stored as `{"body": "..."}` — ContentViewer checks `body`, `markdown`, `text` keys
+- Always use `?? []` when accessing `.learningUnits`, `.modules`, `.topics`, `.concepts` (may be undefined)
+
+### Bugs Fixed (April 13, 2026)
+1. Course detail blank → switched from `/courses/:id` to `/courses/:id/tree` API
+2. "Enroll Now" didn't work → full auth system built (was Keycloak-dependent)
+3. Course player blank on concept click → `learningUnits` missing from API (backend fix)
+4. AI Tutor error → field name mismatches with backend, null sessionId crash
 
 ## Features Not Yet Implemented
-- User registration/login UI (needs Keycloak)
+- Quiz/assessment UI (QuizView component exists but untested end-to-end)
+- Dashboard data display (page exists but may need API fixes)
+- Leaderboard data display
 - Instructor course creation UI
 - Admin dashboard pages
-- Real-time WebSocket notification integration
-- Course content beyond seed data
 - Mobile-responsive polish
+- User profile editing
+- Course search filters (difficulty, category)
