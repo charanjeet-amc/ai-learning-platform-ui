@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { courseApi } from './api/courseApi';
 import { enrollmentApi } from './api/enrollmentApi';
+import { authApi } from './api/authApi';
 import { aiTutorApi } from './api/aiTutorApi';
 import { assessmentApi } from './api/assessmentApi';
 import { gamificationApi } from './api/gamificationApi';
@@ -14,6 +15,7 @@ export const store = configureStore({
     ui: uiReducer,
     [courseApi.reducerPath]: courseApi.reducer,
     [enrollmentApi.reducerPath]: enrollmentApi.reducer,
+    [authApi.reducerPath]: authApi.reducer,
     [aiTutorApi.reducerPath]: aiTutorApi.reducer,
     [assessmentApi.reducerPath]: assessmentApi.reducer,
     [gamificationApi.reducerPath]: gamificationApi.reducer,
@@ -23,6 +25,7 @@ export const store = configureStore({
     getDefaultMiddleware().concat(
       courseApi.middleware,
       enrollmentApi.middleware,
+      authApi.middleware,
       aiTutorApi.middleware,
       assessmentApi.middleware,
       gamificationApi.middleware,

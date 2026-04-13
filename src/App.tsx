@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from './store/hooks';
 import { setTheme } from './store/slices/uiSlice';
+import { setCredentials } from './store/slices/authSlice';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import CourseCatalogPage from './pages/CourseCatalogPage';
@@ -9,6 +10,7 @@ import CourseDetailPage from './pages/CourseDetailPage';
 import CoursePlayerPage from './pages/CoursePlayerPage';
 import DashboardPage from './pages/DashboardPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import LoginPage from './pages/LoginPage';
 
 export default function App() {
   const theme = useAppSelector((s) => s.ui.theme);
@@ -29,6 +31,26 @@ export default function App() {
     if (saved) dispatch(setTheme(saved));
   }, [dispatch]);
 
+  // Restore auth state from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('auth_user');
+    const token = localStorage.getItem('auth_token');
+    if (stored && token) {
+      try {
+        const user = JSON.parse(stored);
+        dispatch(setCredentials({
+          token,
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl ?? undefined,
+          roles: user.roles ?? [],
+        }));
+      } catch { /* ignore corrupt data */ }
+    }
+  }, [dispatch]);
+
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -36,6 +58,7 @@ export default function App() {
         <Route path="/courses" element={<CourseCatalogPage />} />
         <Route path="/courses/:courseId" element={<CourseDetailPage />} />
         <Route path="/courses/:courseId/learn" element={<CoursePlayerPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Route>

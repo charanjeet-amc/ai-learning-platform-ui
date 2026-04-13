@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGetCourseTreeQuery, useGetCourseProgressQuery } from '@/store/api/courseApi';
 import { useEnrollMutation, useIsEnrolledQuery } from '@/store/api/enrollmentApi';
 import { useAppSelector } from '@/store/hooks';
@@ -19,6 +19,7 @@ import { cn, getDifficultyColor, formatDuration } from '@/lib/utils';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
   const token = useAppSelector((s) => s.auth.token);
   const { data: course, isLoading } = useGetCourseTreeQuery(courseId!);
   const { data: isEnrolled } = useIsEnrolledQuery(courseId!, { skip: !token });
@@ -153,7 +154,13 @@ export default function CourseDetailPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={() => enroll(courseId!)}
+                  onClick={() => {
+                    if (!token) {
+                      navigate('/login');
+                    } else {
+                      enroll(courseId!);
+                    }
+                  }}
                   disabled={enrolling}
                 >
                   <ArrowRight className="h-5 w-5 mr-2" />

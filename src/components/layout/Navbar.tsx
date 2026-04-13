@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setTheme } from '@/store/slices/uiSlice';
+import { logout } from '@/store/slices/authSlice';
 import {
   BookOpen,
   LayoutDashboard,
@@ -10,6 +11,7 @@ import {
   GraduationCap,
   Sparkles,
   User,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +23,7 @@ const navItems = [
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const theme = useAppSelector((s) => s.ui.theme);
   const { isAuthenticated, displayName } = useAppSelector((s) => s.auth);
@@ -80,9 +83,24 @@ export default function Navbar() {
 
           {/* User */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary text-sm">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{displayName}</span>
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary text-sm">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{displayName}</span>
+              </div>
+              <button
+                onClick={() => {
+                  dispatch(logout());
+                  localStorage.removeItem('auth_token');
+                  localStorage.removeItem('auth_user');
+                  navigate('/');
+                }}
+                className="p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           ) : (
             <Link
