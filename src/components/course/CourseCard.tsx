@@ -39,9 +39,9 @@ export default function CourseCard({ course, progress }: CourseCardProps) {
 
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            {course.category && (
+            {course.industryVertical && (
               <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                {course.category}
+                {course.industryVertical}
               </span>
             )}
           </div>
@@ -62,7 +62,7 @@ export default function CourseCard({ course, progress }: CourseCardProps) {
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {formatDuration(course.estimatedHours * 60)}
+              {formatDuration(course.estimatedDurationMinutes)}
             </span>
           </div>
         </CardContent>

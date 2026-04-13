@@ -1,5 +1,5 @@
 // ==================== Enums ====================
-export type DifficultyLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+export type DifficultyLevel = 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD' | 'ADVANCED';
 export type ContentType = 'TEXT' | 'VIDEO' | 'INTERACTIVE' | 'CODE_EXERCISE' | 'DIAGRAM' | 'QUIZ' | 'SIMULATION' | 'AUDIO';
 export type ConceptStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'STRUGGLING' | 'MASTERED' | 'REVIEW_NEEDED';
 export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER' | 'CODE_COMPLETION' | 'CODE_DEBUG' | 'MATCHING' | 'ORDER';
@@ -9,19 +9,23 @@ export type LearningStyle = 'VISUAL' | 'READING' | 'KINESTHETIC' | 'AUDITORY';
 export interface Course {
   id: string;
   title: string;
-  slug: string;
+  slug?: string;
   description: string;
   shortDescription: string;
   thumbnailUrl: string;
   difficulty: DifficultyLevel;
-  category: string;
+  industryVertical?: string;
   tags: string[];
-  instructorName: string;
+  createdByName: string;
   published: boolean;
   rating: number;
   enrollmentCount: number;
-  estimatedHours: number;
+  estimatedDurationMinutes: number;
+  prerequisites?: string;
+  skillsOutcome?: string[];
+  price?: number;
   modules: Module[];
+  createdAt?: string;
 }
 
 export interface Module {
@@ -30,27 +34,30 @@ export interface Module {
   description: string;
   orderIndex: number;
   learningObjectives: string[];
-  estimatedMinutes: number;
   topics: Topic[];
 }
 
 export interface Topic {
   id: string;
   title: string;
-  description: string;
   orderIndex: number;
+  estimatedTimeMinutes?: number;
+  tags?: string[];
   concepts: Concept[];
 }
 
 export interface Concept {
   id: string;
   title: string;
-  description: string;
-  difficulty: DifficultyLevel;
+  definition: string;
+  difficultyLevel: DifficultyLevel;
   orderIndex: number;
-  masteryThreshold: number;
-  estimatedMinutes: number;
+  tags?: string[];
   learningUnits: LearningUnit[];
+  misconceptions?: string[];
+  socraticQuestions?: string[];
+  outcomes?: string[];
+  dependencyIds?: string[];
 }
 
 export interface LearningUnit {

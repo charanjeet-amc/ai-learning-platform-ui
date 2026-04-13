@@ -95,9 +95,10 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
           </CardTitle>
           <span className={cn('text-xs px-2 py-0.5 rounded-full', {
             'bg-green-100 text-green-700': question.difficulty === 'BEGINNER',
-            'bg-blue-100 text-blue-700': question.difficulty === 'INTERMEDIATE',
-            'bg-orange-100 text-orange-700': question.difficulty === 'ADVANCED',
-            'bg-red-100 text-red-700': question.difficulty === 'EXPERT',
+            'bg-teal-100 text-teal-700': question.difficulty === 'EASY',
+            'bg-blue-100 text-blue-700': question.difficulty === 'MEDIUM',
+            'bg-orange-100 text-orange-700': question.difficulty === 'HARD',
+            'bg-red-100 text-red-700': question.difficulty === 'ADVANCED',
           })}>
             {question.difficulty}
           </span>

@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
-import { useGetCourseQuery, useGetCourseProgressQuery } from '@/store/api/courseApi';
+import { useGetCourseTreeQuery, useGetCourseProgressQuery } from '@/store/api/courseApi';
 import { useEnrollMutation, useIsEnrolledQuery } from '@/store/api/enrollmentApi';
+import { useAppSelector } from '@/store/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -18,9 +19,10 @@ import { cn, getDifficultyColor, formatDuration } from '@/lib/utils';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
-  const { data: course, isLoading } = useGetCourseQuery(courseId!);
-  const { data: isEnrolled } = useIsEnrolledQuery(courseId!);
-  const { data: progress } = useGetCourseProgressQuery(courseId!, { skip: !isEnrolled });
+  const token = useAppSelector((s) => s.auth.token);
+  const { data: course, isLoading } = useGetCourseTreeQuery(courseId!);
+  const { data: isEnrolled } = useIsEnrolledQuery(courseId!, { skip: !token });
+  const { data: progress } = useGetCourseProgressQuery(courseId!, { skip: !token || !isEnrolled });
   const [enroll, { isLoading: enrolling }] = useEnrollMutation();
 
   if (isLoading || !course) {
@@ -43,9 +45,9 @@ export default function CourseDetailPage() {
           {/* Hero */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              {course.category && (
+              {course.industryVertical && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                  {course.category}
+                  {course.industryVertical}
                 </span>
               )}
               <span className={cn('text-xs px-2 py-0.5 rounded-full', getDifficultyColor(course.difficulty))}>
@@ -66,11 +68,11 @@ export default function CourseDetailPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />
-                {formatDuration(course.estimatedHours * 60)}
+                {formatDuration(course.estimatedDurationMinutes)}
               </span>
               <span className="flex items-center gap-1.5">
                 <GraduationCap className="h-4 w-4" />
-                {course.instructorName}
+                {course.createdByName}
               </span>
             </div>
           </div>
@@ -79,7 +81,7 @@ export default function CourseDetailPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Course Content</h2>
             <div className="space-y-3">
-              {course.modules.map((module, index) => (
+              {(course.modules ?? []).map((module, index) => (
                 <Card key={module.id}>
                   <CardHeader className="py-4">
                     <CardTitle className="text-base flex items-center gap-3">
@@ -88,11 +90,11 @@ export default function CourseDetailPage() {
                       </span>
                       {module.title}
                       <span className="ml-auto text-xs text-muted-foreground font-normal">
-                        {module.topics.length} topics · {formatDuration(module.estimatedMinutes)}
+                        {module.topics?.length ?? 0} topics
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  {module.learningObjectives.length > 0 && (
+                  {(module.learningObjectives?.length ?? 0) > 0 && (
                     <CardContent className="pt-0 pb-4">
                       <ul className="space-y-1">
                         {module.learningObjectives.map((obj, i) => (
@@ -162,12 +164,12 @@ export default function CourseDetailPage() {
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="text-center p-3 rounded-lg bg-secondary">
-                  <p className="text-lg font-bold">{course.modules.length}</p>
+                  <p className="text-lg font-bold">{(course.modules ?? []).length}</p>
                   <p className="text-xs text-muted-foreground">Modules</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-secondary">
                   <p className="text-lg font-bold">
-                    {course.modules.reduce((s, m) => s + m.topics.length, 0)}
+                    {(course.modules ?? []).reduce((s, m) => s + (m.topics?.length ?? 0), 0)}
                   </p>
                   <p className="text-xs text-muted-foreground">Topics</p>
                 </div>

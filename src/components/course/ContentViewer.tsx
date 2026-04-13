@@ -49,7 +49,7 @@ export default function ContentViewer({ concept, activeLearningUnit, mastery, on
       {/* Concept Header */}
       <div>
         <h2 className="text-2xl font-bold">{concept.title}</h2>
-        <p className="text-muted-foreground mt-1">{concept.description}</p>
+        <p className="text-muted-foreground mt-1">{concept.definition}</p>
         <div className="flex items-center gap-4 mt-3">
           <div className="flex-1 max-w-xs">
             <div className="flex justify-between text-xs mb-1">
@@ -59,7 +59,7 @@ export default function ContentViewer({ concept, activeLearningUnit, mastery, on
             <Progress value={mastery * 100} className="h-2" />
           </div>
           <span className="text-xs text-muted-foreground">
-            ~{concept.estimatedMinutes} min
+            {concept.learningUnits?.length ?? 0} units
           </span>
         </div>
       </div>
