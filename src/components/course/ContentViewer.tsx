@@ -59,15 +59,15 @@ export default function ContentViewer({ concept, activeLearningUnit, mastery, on
             <Progress value={mastery * 100} className="h-2" />
           </div>
           <span className="text-xs text-muted-foreground">
-            {concept.learningUnits?.length ?? 0} units
+            {(concept.learningUnits ?? []).length} units
           </span>
         </div>
       </div>
 
       {/* Learning Unit Tabs */}
-      {concept.learningUnits.length > 0 && (
+      {(concept.learningUnits ?? []).length > 0 && (
         <div className="flex gap-2 flex-wrap">
-          {concept.learningUnits.map((unit) => (
+          {(concept.learningUnits ?? []).map((unit) => (
             <button
               key={unit.id}
               onClick={() => onUnitSelect(unit)}
@@ -109,7 +109,7 @@ function LearningUnitContent({ unit }: { unit: LearningUnit }) {
     case 'TEXT':
       return (
         <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown>{content['markdown'] || content['text'] || ''}</ReactMarkdown>
+          <ReactMarkdown>{content['markdown'] || content['text'] || content['body'] || ''}</ReactMarkdown>
         </div>
       );
 
@@ -146,7 +146,7 @@ function LearningUnitContent({ unit }: { unit: LearningUnit }) {
     default:
       return (
         <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown>{content['markdown'] || content['text'] || JSON.stringify(content, null, 2)}</ReactMarkdown>
+          <ReactMarkdown>{content['markdown'] || content['text'] || content['body'] || JSON.stringify(content, null, 2)}</ReactMarkdown>
         </div>
       );
   }
