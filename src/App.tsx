@@ -14,6 +14,7 @@ import LearningHistoryPage from './pages/LearningHistoryPage';
 import LoginPage from './pages/LoginPage';
 import InstructorDashboardPage from './pages/InstructorDashboardPage';
 import CourseEditorPage from './pages/CourseEditorPage';
+import RequireAuth from './components/auth/RequireAuth';
 
 export default function App() {
   const theme = useAppSelector((s) => s.ui.theme);
@@ -60,13 +61,13 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/courses" element={<CourseCatalogPage />} />
         <Route path="/courses/:courseId" element={<CourseDetailPage />} />
-        <Route path="/courses/:courseId/learn" element={<CoursePlayerPage />} />
+        <Route path="/courses/:courseId/learn" element={<RequireAuth><CoursePlayerPage /></RequireAuth>} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/history" element={<LearningHistoryPage />} />
+        <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+        <Route path="/history" element={<RequireAuth><LearningHistoryPage /></RequireAuth>} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/instructor" element={<InstructorDashboardPage />} />
-        <Route path="/instructor/courses/:courseId/edit" element={<CourseEditorPage />} />
+        <Route path="/instructor" element={<RequireAuth><InstructorDashboardPage /></RequireAuth>} />
+        <Route path="/instructor/courses/:courseId/edit" element={<RequireAuth><CourseEditorPage /></RequireAuth>} />
       </Route>
     </Routes>
   );

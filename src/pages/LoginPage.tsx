@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { useLoginMutation, useRegisterMutation } from '@/store/api/authApi';
@@ -10,6 +10,8 @@ import { GraduationCap, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from || '/dashboard';
   const dispatch = useAppDispatch();
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +52,7 @@ export default function LoginPage() {
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('auth_user', JSON.stringify(result));
 
-      navigate(-1);
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       const apiErr = err as { status?: number };
       if (apiErr.status === 401) {
