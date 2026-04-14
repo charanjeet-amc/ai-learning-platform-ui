@@ -17,7 +17,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navItems = [
+const publicNavItems = [
+  { label: 'Courses', href: '/courses', icon: BookOpen },
+  { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
+];
+
+const authNavItems = [
   { label: 'Courses', href: '/courses', icon: BookOpen },
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'History', href: '/history', icon: History },
@@ -47,7 +52,7 @@ export default function Navbar() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
+          {(isAuthenticated ? authNavItems : publicNavItems).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.href);
             return (
