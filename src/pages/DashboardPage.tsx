@@ -1,12 +1,15 @@
 import { useGetDashboardQuery } from '@/store/api/dashboardApi';
 import { useGetMyBadgesQuery } from '@/store/api/gamificationApi';
 import { useGetReviewQueueQuery } from '@/store/api/assessmentApi';
+import { useBecomeInstructorMutation } from '@/store/api/instructorApi';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setCredentials } from '@/store/slices/authSlice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import XPBar from '@/components/gamification/XPBar';
 import BadgeDisplay from '@/components/gamification/BadgeDisplay';
 import StreakTracker from '@/components/gamification/StreakTracker';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   Brain,
@@ -16,6 +19,7 @@ import {
   ArrowRight,
   Sparkles,
   RotateCcw,
+  PenTool,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn, getMasteryColor } from '@/lib/utils';
@@ -24,6 +28,11 @@ export default function DashboardPage() {
   const { data: dashboard, isLoading } = useGetDashboardQuery();
   const { data: badges } = useGetMyBadgesQuery();
   const { data: reviewQueue } = useGetReviewQueueQuery();
+  const { roles } = useAppSelector((s) => s.auth);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const isInstructor = roles?.includes('INSTRUCTOR') || roles?.includes('ADMIN');
+  const [becomeInstructor, { isLoading: isUpgrading }] = useBecomeInstructorMutation();
 
   if (isLoading || !dashboard) {
     return (
@@ -232,6 +241,48 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <BadgeDisplay badges={badges} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Become Instructor CTA — shown only to non-instructors */}
+      {!isInstructor && (
+        <Card className="border-dashed">
+          <CardContent className="p-6 flex items-center gap-6">
+            <div className="p-3 rounded-xl bg-primary/10 shrink-0">
+              <PenTool className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">Want to create courses?</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Upgrade to an Instructor account to build and publish your own courses with our rich content editor.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                try {
+                  const result = await becomeInstructor().unwrap();
+                  dispatch(setCredentials({
+                    token: result.token,
+                    userId: result.userId,
+                    username: result.username,
+                    email: result.email,
+                    displayName: result.displayName,
+                    avatarUrl: result.avatarUrl ?? undefined,
+                    roles: result.roles,
+                  }));
+                  localStorage.setItem('auth_token', result.token);
+                  localStorage.setItem('auth_user', JSON.stringify(result));
+                  navigate('/instructor');
+                } catch {
+                  alert('Failed to upgrade account. Please try again.');
+                }
+              }}
+              disabled={isUpgrading}
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium shrink-0 hover:bg-primary/90 disabled:opacity-50"
+            >
+              {isUpgrading ? 'Upgrading...' : 'Become an Instructor'}
+            </button>
           </CardContent>
         </Card>
       )}

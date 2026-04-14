@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/slices/authSlice';
+import { useAppSelector } from '@/store/hooks';
 import {
   useGetMyCoursesQuery,
   useCreateCourseMutation,
@@ -9,7 +8,6 @@ import {
   useUnpublishCourseMutation,
   useDeleteCourseMutation,
   useImportCourseMutation,
-  useBecomeInstructorMutation,
 } from '@/store/api/instructorApi';
 import {
   Plus,
@@ -27,11 +25,9 @@ import {
 
 export default function InstructorDashboardPage() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const { isAuthenticated, roles, displayName } = useAppSelector((s) => s.auth);
   const isInstructor = roles.includes('INSTRUCTOR') || roles.includes('ADMIN');
 
-  const [becomeInstructor] = useBecomeInstructorMutation();
   const { data: courses, isLoading, refetch } = useGetMyCoursesQuery(undefined, { skip: !isInstructor });
   const [createCourse] = useCreateCourseMutation();
   const [publishCourse] = usePublishCourseMutation();
@@ -68,33 +64,16 @@ export default function InstructorDashboardPage() {
   if (!isInstructor) {
     return (
       <div className="container py-16 text-center">
-        <GraduationCap className="h-16 w-16 mx-auto mb-4 text-primary" />
-        <h2 className="text-2xl font-bold mb-2">Become an Instructor</h2>
+        <GraduationCap className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+        <h2 className="text-2xl font-bold mb-2">Instructor Access Required</h2>
         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-          Share your knowledge by creating courses. Upgrade your account to start building courses with our rich content editor.
+          You need instructor privileges to access this area. You can upgrade your account from the Dashboard.
         </p>
         <button
-          onClick={async () => {
-            try {
-              const result = await becomeInstructor().unwrap();
-              dispatch(setCredentials({
-                token: result.token,
-                userId: result.userId,
-                username: result.username,
-                email: result.email,
-                displayName: result.displayName,
-                avatarUrl: result.avatarUrl ?? undefined,
-                roles: result.roles,
-              }));
-              localStorage.setItem('auth_token', result.token);
-              localStorage.setItem('auth_user', JSON.stringify(result));
-            } catch {
-              alert('Failed to upgrade account. Please try again.');
-            }
-          }}
+          onClick={() => navigate('/dashboard')}
           className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium"
         >
-          Become an Instructor
+          Go to Dashboard
         </button>
       </div>
     );
