@@ -107,9 +107,9 @@ function CourseHistoryCard({ course }: { course: CourseHistoryEntry }) {
 }
 
 export default function LearningHistoryPage() {
-  const { data: history, isLoading } = useGetLearningHistoryQuery();
+  const { data: history, isLoading, error } = useGetLearningHistoryQuery();
 
-  if (isLoading || !history) {
+  if (isLoading) {
     return (
       <div className="container py-8 max-w-4xl">
         <div className="animate-pulse space-y-6">
@@ -121,6 +121,17 @@ export default function LearningHistoryPage() {
           </div>
           <div className="h-64 bg-muted rounded-xl" />
         </div>
+      </div>
+    );
+  }
+
+  if (error || !history) {
+    return (
+      <div className="container py-8 max-w-4xl">
+        <h1 className="text-3xl font-bold">Learning History</h1>
+        <p className="text-muted-foreground mt-4">
+          Unable to load learning history. Please make sure you are logged in and try again.
+        </p>
       </div>
     );
   }
