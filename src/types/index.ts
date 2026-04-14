@@ -175,31 +175,36 @@ export interface XPEvent {
 
 // ==================== Dashboard ====================
 export interface Dashboard {
+  userId: string;
+  fullName: string;
   totalXp: number;
   currentStreak: number;
   longestStreak: number;
-  totalCoursesEnrolled: number;
-  totalConceptsMastered: number;
-  totalLearningHours: number;
-  recentBadges: Badge[];
   enrolledCourses: EnrolledCourse[];
+  recentBadges: Badge[];
   weakAreas: WeakArea[];
+  rank: number;
 }
 
 export interface EnrolledCourse {
   courseId: string;
   courseTitle: string;
   thumbnailUrl: string;
-  progress: number;
+  progressPercent: number;
+  completed: boolean;
   enrolledAt: string;
-  lastAccessedAt?: string;
 }
 
 export interface WeakArea {
+  userId: string;
   conceptId: string;
   conceptTitle: string;
-  weaknessScore: number;
-  courseName: string;
+  masteryLevel: number;
+  confidenceScore: number;
+  attempts: number;
+  status: ConceptStatus;
+  fastTracked?: boolean;
+  nextReviewAt?: string;
 }
 
 // ==================== Pagination ====================

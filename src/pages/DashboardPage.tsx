@@ -10,7 +10,6 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen,
   Brain,
-  Clock,
   Flame,
   Trophy,
   AlertTriangle,
@@ -44,9 +43,9 @@ export default function DashboardPage() {
 
   const stats = [
     { label: 'Total XP', value: dashboard.totalXp.toLocaleString(), icon: Sparkles, color: 'text-yellow-500' },
-    { label: 'Concepts Mastered', value: dashboard.totalConceptsMastered, icon: Brain, color: 'text-green-500' },
-    { label: 'Courses Enrolled', value: dashboard.totalCoursesEnrolled, icon: BookOpen, color: 'text-blue-500' },
-    { label: 'Learning Hours', value: dashboard.totalLearningHours, icon: Clock, color: 'text-purple-500' },
+    { label: 'Concepts Mastered', value: dashboard.weakAreas.filter(a => a.status === 'MASTERED').length, icon: Brain, color: 'text-green-500' },
+    { label: 'Courses Enrolled', value: dashboard.enrolledCourses.length, icon: BookOpen, color: 'text-blue-500' },
+    { label: 'Rank', value: dashboard.rank > 0 ? `#${dashboard.rank}` : 'N/A', icon: Trophy, color: 'text-purple-500' },
   ];
 
   return (
@@ -115,13 +114,12 @@ export default function DashboardPage() {
                   <div key={area.conceptId} className="flex items-center gap-3">
                     <div className="flex-1">
                       <p className="text-sm font-medium">{area.conceptTitle}</p>
-                      <p className="text-xs text-muted-foreground">{area.courseName}</p>
                     </div>
                     <div className="w-24">
-                      <Progress value={area.weaknessScore * 100} className="h-1.5" />
+                      <Progress value={(area.masteryLevel ?? 0) * 100} className="h-1.5" />
                     </div>
-                    <span className={cn('text-xs font-medium', getMasteryColor(1 - area.weaknessScore))}>
-                      {Math.round(area.weaknessScore * 100)}%
+                    <span className={cn('text-xs font-medium', getMasteryColor(area.masteryLevel ?? 0))}>
+                      {Math.round((area.masteryLevel ?? 0) * 100)}%
                     </span>
                   </div>
                 ))}
@@ -211,9 +209,9 @@ export default function DashboardPage() {
                     <div className="mt-2">
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{Math.round(course.progress)}%</span>
+                        <span className="font-medium">{Math.round(course.progressPercent ?? 0)}%</span>
                       </div>
-                      <Progress value={course.progress} className="h-1.5" />
+                      <Progress value={course.progressPercent ?? 0} className="h-1.5" />
                     </div>
                   </div>
                 </Link>
