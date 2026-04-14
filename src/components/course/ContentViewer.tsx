@@ -12,6 +12,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ContentViewerProps {
   concept: Concept | null;
@@ -109,7 +110,7 @@ function LearningUnitContent({ unit }: { unit: LearningUnit }) {
     case 'TEXT':
       return (
         <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown>{content['markdown'] || content['text'] || content['body'] || ''}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content['markdown'] || content['text'] || content['body'] || ''}</ReactMarkdown>
         </div>
       );
 
@@ -137,7 +138,7 @@ function LearningUnitContent({ unit }: { unit: LearningUnit }) {
           </div>
           {content['instructions'] && (
             <div className="prose dark:prose-invert max-w-none text-sm">
-              <ReactMarkdown>{content['instructions']}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content['instructions']}</ReactMarkdown>
             </div>
           )}
         </div>
@@ -146,7 +147,7 @@ function LearningUnitContent({ unit }: { unit: LearningUnit }) {
     default:
       return (
         <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown>{content['markdown'] || content['text'] || content['body'] || JSON.stringify(content, null, 2)}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content['markdown'] || content['text'] || content['body'] || JSON.stringify(content, null, 2)}</ReactMarkdown>
         </div>
       );
   }

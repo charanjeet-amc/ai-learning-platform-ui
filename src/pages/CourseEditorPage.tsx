@@ -17,6 +17,7 @@ import {
 } from '@/store/api/instructorApi';
 import type { Module, Topic, Concept } from '@/types';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ArrowLeft,
   Save,
@@ -577,7 +578,7 @@ export default function CourseEditorPage() {
                 <div className="p-4">
                   {showPreview ? (
                     <div className="prose dark:prose-invert max-w-none min-h-[60vh]">
-                      <ReactMarkdown>{editingContent || '*No content yet*'}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{editingContent || '*No content yet*'}</ReactMarkdown>
                     </div>
                   ) : (
                     <textarea

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, Send, Sparkles, Lightbulb, User, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
 interface ChatMessage {
@@ -168,7 +169,7 @@ export default function AITutorPanel({ courseId, conceptId, conceptTitle }: AITu
               >
                 {msg.role === 'assistant' ? (
                   <div className="prose dark:prose-invert prose-sm max-w-none">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                   </div>
                 ) : (
                   <p>{msg.content}</p>
