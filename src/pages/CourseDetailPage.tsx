@@ -183,9 +183,9 @@ export default function CourseDetailPage() {
               </div>
 
               {/* Tags */}
-              {course.tags.length > 0 && (
+              {(course.tags ?? []).length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-2">
-                  {course.tags.map((tag) => (
+                  {(course.tags ?? []).map((tag) => (
                     <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                       {tag}
                     </span>
