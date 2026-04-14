@@ -68,6 +68,7 @@ export default function CourseEditorPage() {
   const [editingContent, setEditingContent] = useState('');
   const [editingTitle, setEditingTitle] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
 
@@ -109,6 +110,7 @@ export default function CourseEditorPage() {
 
   const saveConcept = async () => {
     if (!selectedConceptId) return;
+    setSaveStatus('saving');
     try {
       await updateConcept({
         conceptId: selectedConceptId,
@@ -116,7 +118,10 @@ export default function CourseEditorPage() {
         content: editingContent,
       }).unwrap();
       refetch();
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
+      setSaveStatus('idle');
       alert('Failed to save');
     }
   };
@@ -137,6 +142,8 @@ export default function CourseEditorPage() {
       }).unwrap();
       setEditingMeta(false);
       refetch();
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
       alert('Failed to save course details');
     }
@@ -496,9 +503,13 @@ export default function CourseEditorPage() {
                     </button>
                     <button
                       onClick={saveConcept}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md"
+                      disabled={saveStatus === 'saving'}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+                        saveStatus === 'saved' ? 'bg-green-600 text-white' : saveStatus === 'saving' ? 'bg-primary/70 text-primary-foreground' : 'bg-primary text-primary-foreground'
+                      }`}
                     >
-                      <Save className="h-3.5 w-3.5" /> Save
+                      <Save className="h-3.5 w-3.5" />
+                      {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
                     </button>
                   </div>
                 </div>
