@@ -14,6 +14,7 @@ import {
   LogOut,
   History,
   PenTool,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -109,10 +110,13 @@ export default function Navbar() {
           {/* User */}
           {isAuthenticated ? (
             <div className="flex items-center gap-1">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary text-sm">
+              <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary text-sm hover:bg-secondary/80 transition-colors" title="My Profile">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">{displayName}</span>
-              </div>
+              </Link>
+              <Link to="/settings" className="p-2 rounded-md hover:bg-accent text-muted-foreground transition-colors" aria-label="Settings" title="Settings">
+                <Settings className="h-4 w-4" />
+              </Link>
               <button
                 onClick={() => {
                   dispatch(logout());
