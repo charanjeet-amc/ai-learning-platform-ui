@@ -54,11 +54,11 @@ export default function CourseCard({ course, progress }: CourseCardProps) {
           <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
-              {course.rating.toFixed(1)}
+              {(course.rating ?? 0).toFixed(1)}
             </span>
             <span className="flex items-center gap-1">
               <Users className="h-3.5 w-3.5" />
-              {course.enrollmentCount.toLocaleString()}
+              {(course.enrollmentCount ?? 0).toLocaleString()}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />

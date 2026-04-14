@@ -61,11 +61,11 @@ export default function CourseDetailPage() {
             <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                {course.rating.toFixed(1)}
+                {(course.rating ?? 0).toFixed(1)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Users className="h-4 w-4" />
-                {course.enrollmentCount.toLocaleString()} enrolled
+                {(course.enrollmentCount ?? 0).toLocaleString()} enrolled
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />
