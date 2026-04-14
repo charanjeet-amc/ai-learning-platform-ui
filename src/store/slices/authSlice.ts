@@ -11,16 +11,33 @@ interface AuthState {
   roles: string[];
 }
 
-const initialState: AuthState = {
-  isAuthenticated: false,
-  token: null,
-  userId: null,
-  username: null,
-  email: null,
-  displayName: null,
-  avatarUrl: null,
-  roles: [],
-};
+function loadAuthState(): AuthState {
+  try {
+    const stored = localStorage.getItem('auth');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return { ...parsed, isAuthenticated: !!parsed.token };
+    }
+  } catch { /* ignore */ }
+  return {
+    isAuthenticated: false,
+    token: null,
+    userId: null,
+    username: null,
+    email: null,
+    displayName: null,
+    avatarUrl: null,
+    roles: [],
+  };
+}
+
+function saveAuthState(state: AuthState) {
+  try {
+    localStorage.setItem('auth', JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
+const initialState: AuthState = loadAuthState();
 
 const authSlice = createSlice({
   name: 'auth',
@@ -43,6 +60,7 @@ const authSlice = createSlice({
       state.displayName = action.payload.displayName;
       state.avatarUrl = action.payload.avatarUrl ?? null;
       state.roles = action.payload.roles;
+      saveAuthState(state);
     },
     logout: (state) => {
       state.isAuthenticated = false;
@@ -53,6 +71,7 @@ const authSlice = createSlice({
       state.displayName = null;
       state.avatarUrl = null;
       state.roles = [];
+      saveAuthState(state);
     },
     updateToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
