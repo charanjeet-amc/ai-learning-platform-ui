@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetCourseTreeQuery } from '@/store/api/courseApi';
 import { useGetQuestionsQuery } from '@/store/api/assessmentApi';
+import { useGetLearningPathQuery } from '@/store/api/learningPathApi';
 import CourseTree from '@/components/course/CourseTree';
 import ContentViewer from '@/components/course/ContentViewer';
 import AITutorPanel from '@/components/ai-tutor/AITutorPanel';
@@ -9,8 +10,9 @@ import QuizView from '@/components/assessment/QuizView';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { toggleAIPanel, setActiveConcept } from '@/store/slices/uiSlice';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bot, PanelRightClose, PanelRightOpen, BookOpen, HelpCircle } from 'lucide-react';
+import { Bot, PanelRightClose, PanelRightOpen, BookOpen, HelpCircle, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LearningUnit, Concept } from '@/types';
 
@@ -22,6 +24,7 @@ export default function CoursePlayerPage() {
 
   const { data: course, isLoading } = useGetCourseTreeQuery(courseId!);
   const { data: questions } = useGetQuestionsQuery(activeConceptId!, { skip: !activeConceptId });
+  const { data: learningPath } = useGetLearningPathQuery(courseId!, { skip: !courseId });
 
   const [activeLearningUnit, setActiveLearningUnit] = useState<LearningUnit | null>(null);
   const [activeTab, setActiveTab] = useState('learn');
@@ -61,13 +64,30 @@ export default function CoursePlayerPage() {
   return (
     <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
       {/* LHS: Course Tree */}
-      <div className="w-72 border-r bg-card shrink-0 overflow-hidden">
-        <CourseTree
-          course={course}
-          activeConceptId={activeConceptId}
-          onConceptSelect={handleConceptSelect}
-          progressMap={{}}
-        />
+      <div className="w-72 border-r bg-card shrink-0 overflow-hidden flex flex-col">
+        {learningPath && learningPath.nextConceptId && (
+          <div className="p-3 border-b bg-primary/5">
+            <button
+              onClick={() => handleConceptSelect(learningPath.nextConceptId!)}
+              className="w-full flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors"
+            >
+              <Compass className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Up next: {learningPath.nextConceptTitle}</span>
+            </button>
+            <div className="flex items-center gap-2 mt-1.5">
+              <Progress value={learningPath.totalSteps > 0 ? (learningPath.completedSteps / learningPath.totalSteps) * 100 : 0} className="h-1 flex-1" />
+              <span className="text-[10px] text-muted-foreground">{learningPath.completedSteps}/{learningPath.totalSteps}</span>
+            </div>
+          </div>
+        )}
+        <div className="flex-1 overflow-hidden">
+          <CourseTree
+            course={course}
+            activeConceptId={activeConceptId}
+            onConceptSelect={handleConceptSelect}
+            progressMap={{}}
+          />
+        </div>
       </div>
 
       {/* Center: Content */}

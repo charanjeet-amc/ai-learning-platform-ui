@@ -2,7 +2,7 @@
 export type DifficultyLevel = 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD' | 'ADVANCED';
 export type ContentType = 'TEXT' | 'VIDEO' | 'INTERACTIVE' | 'CODE_EXERCISE' | 'DIAGRAM' | 'QUIZ' | 'SIMULATION' | 'AUDIO';
 export type ConceptStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'STRUGGLING' | 'MASTERED' | 'REVIEW_NEEDED';
-export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'SHORT_ANSWER' | 'CODE_COMPLETION' | 'CODE_DEBUG' | 'MATCHING' | 'ORDER';
+export type QuestionType = 'MCQ' | 'CODING' | 'SUBJECTIVE' | 'SCENARIO_BASED';
 export type LearningStyle = 'VISUAL' | 'READING' | 'KINESTHETIC' | 'AUDITORY';
 
 // ==================== Course Domain ====================
@@ -121,24 +121,31 @@ export interface AITutorResponse {
 // ==================== Assessment ====================
 export interface Question {
   id: string;
-  questionType: QuestionType;
+  type: QuestionType;
   questionText: string;
   difficulty: DifficultyLevel;
   metadata: Record<string, unknown>;
+  conceptId?: string;
+  aiGenerated?: boolean;
 }
 
 export interface SubmitAnswerRequest {
   questionId: string;
-  answer: string;
+  answer: Record<string, unknown>;
+  timeTakenSeconds?: number;
+  hintsUsed?: number;
 }
 
 export interface AnswerResult {
+  attemptId: string;
   correct: boolean;
+  score: number;
   explanation: string;
-  masteryDelta: number;
-  newMastery: number;
-  xpEarned: number;
+  feedback: string;
+  updatedMastery: number;
   nextAction: string;
+  xpEarned: number;
+  nextConceptId?: string;
 }
 
 // ==================== Gamification ====================
@@ -204,4 +211,38 @@ export interface Page<T> {
   size: number;
   first: boolean;
   last: boolean;
+}
+
+// ==================== Learning Path ====================
+export interface LearningPathStep {
+  stepIndex: number;
+  conceptId: string;
+  conceptTitle: string;
+  difficulty: DifficultyLevel;
+  status: ConceptStatus;
+  masteryLevel: number;
+  reason: string;
+}
+
+export interface LearningPath {
+  courseId: string;
+  courseTitle: string;
+  steps: LearningPathStep[];
+  totalSteps: number;
+  completedSteps: number;
+  nextConceptId?: string;
+  nextConceptTitle?: string;
+}
+
+// ==================== Review Queue ====================
+export interface ReviewItem {
+  userId: string;
+  conceptId: string;
+  conceptTitle: string;
+  masteryLevel: number;
+  confidenceScore: number;
+  attempts: number;
+  status: ConceptStatus;
+  fastTracked: boolean;
+  nextReviewAt: string;
 }

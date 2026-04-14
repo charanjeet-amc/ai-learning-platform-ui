@@ -71,7 +71,7 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
     try {
       const res = await submitAnswer({
         questionId: question.id,
-        answer: selectedAnswer,
+        answer: { answer: selectedAnswer },
       }).unwrap();
       setResult(res);
       setResults((prev) => [...prev, res]);
@@ -108,7 +108,7 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
       <CardContent className="space-y-4">
         <p className="text-base font-medium">{question.questionText}</p>
 
-        {question.questionType === 'MULTIPLE_CHOICE' && (
+        {question.type === 'MCQ' && (
           <div className="space-y-2">
             {options.map((opt, i) => (
               <button
@@ -139,18 +139,23 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
           </div>
         )}
 
-        {question.questionType === 'TRUE_FALSE' && (
-          <div className="flex gap-3">
-            {['True', 'False'].map((opt) => (
-              <Button
-                key={opt}
-                variant={selectedAnswer === opt ? 'default' : 'outline'}
+        {question.type === 'SCENARIO_BASED' && options.length > 0 && (
+          <div className="space-y-2">
+            {options.map((opt, i) => (
+              <button
+                key={i}
                 onClick={() => !result && setSelectedAnswer(opt)}
                 disabled={!!result}
-                className="flex-1"
+                className={cn(
+                  'w-full text-left px-4 py-3 rounded-lg border text-sm transition-all',
+                  !result && selectedAnswer === opt && 'border-primary bg-primary/5',
+                  !result && selectedAnswer !== opt && 'hover:border-primary/50 hover:bg-accent',
+                  result && selectedAnswer === opt && result.correct && 'border-green-500 bg-green-50 dark:bg-green-950',
+                  result && selectedAnswer === opt && !result.correct && 'border-red-500 bg-red-50 dark:bg-red-950',
+                )}
               >
                 {opt}
-              </Button>
+              </button>
             ))}
           </div>
         )}

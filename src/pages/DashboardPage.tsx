@@ -1,5 +1,6 @@
 import { useGetDashboardQuery } from '@/store/api/dashboardApi';
 import { useGetMyBadgesQuery } from '@/store/api/gamificationApi';
+import { useGetReviewQueueQuery } from '@/store/api/assessmentApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import XPBar from '@/components/gamification/XPBar';
@@ -15,6 +16,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn, getMasteryColor } from '@/lib/utils';
@@ -22,6 +24,7 @@ import { cn, getMasteryColor } from '@/lib/utils';
 export default function DashboardPage() {
   const { data: dashboard, isLoading } = useGetDashboardQuery();
   const { data: badges } = useGetMyBadgesQuery();
+  const { data: reviewQueue } = useGetReviewQueueQuery();
 
   if (isLoading || !dashboard) {
     return (
@@ -127,6 +130,41 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Spaced Repetition Review Queue */}
+      {reviewQueue && reviewQueue.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <RotateCcw className="h-5 w-5 text-indigo-500" />
+              Due for Review
+              <span className="ml-auto text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">
+                {reviewQueue.length} concept{reviewQueue.length !== 1 ? 's' : ''}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {reviewQueue.slice(0, 5).map((item) => (
+                <div key={item.conceptId} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.conceptTitle}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Mastery: {Math.round(item.masteryLevel * 100)}%
+                    </p>
+                  </div>
+                  <div className="w-24">
+                    <Progress value={item.masteryLevel * 100} className="h-1.5" />
+                  </div>
+                  <span className={cn('text-xs font-medium', getMasteryColor(item.masteryLevel))}>
+                    Review
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Enrolled Courses */}
       <Card>
