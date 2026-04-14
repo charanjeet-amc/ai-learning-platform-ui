@@ -12,12 +12,14 @@ import {
   Sparkles,
   User,
   LogOut,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { label: 'Courses', href: '/courses', icon: BookOpen },
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'History', href: '/history', icon: History },
   { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
 ];
 

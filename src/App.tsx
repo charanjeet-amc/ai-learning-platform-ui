@@ -10,6 +10,7 @@ import CourseDetailPage from './pages/CourseDetailPage';
 import CoursePlayerPage from './pages/CoursePlayerPage';
 import DashboardPage from './pages/DashboardPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import LearningHistoryPage from './pages/LearningHistoryPage';
 import LoginPage from './pages/LoginPage';
 
 export default function App() {
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/courses/:courseId/learn" element={<CoursePlayerPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/history" element={<LearningHistoryPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Route>
     </Routes>
