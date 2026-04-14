@@ -63,8 +63,11 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
     );
   }
 
-  const metadata = question.metadata as { options?: string[] };
-  const options = metadata?.options || [];
+  const metadata = question.metadata as Record<string, unknown> | null;
+  const rawOptions = metadata?.options;
+  const options: string[] = Array.isArray(rawOptions)
+    ? rawOptions.map(String)
+    : [];
 
   const handleSubmit = async () => {
     if (!selectedAnswer) return;
@@ -108,7 +111,8 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
       <CardContent className="space-y-4">
         <p className="text-base font-medium">{question.questionText}</p>
 
-        {question.type === 'MCQ' && (
+        {/* MCQ / Option-based questions */}
+        {options.length > 0 && (
           <div className="space-y-2">
             {options.map((opt, i) => (
               <button
@@ -139,25 +143,15 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
           </div>
         )}
 
-        {question.type === 'SCENARIO_BASED' && options.length > 0 && (
-          <div className="space-y-2">
-            {options.map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => !result && setSelectedAnswer(opt)}
-                disabled={!!result}
-                className={cn(
-                  'w-full text-left px-4 py-3 rounded-lg border text-sm transition-all',
-                  !result && selectedAnswer === opt && 'border-primary bg-primary/5',
-                  !result && selectedAnswer !== opt && 'hover:border-primary/50 hover:bg-accent',
-                  result && selectedAnswer === opt && result.correct && 'border-green-500 bg-green-50 dark:bg-green-950',
-                  result && selectedAnswer === opt && !result.correct && 'border-red-500 bg-red-50 dark:bg-red-950',
-                )}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
+        {/* Free-text fallback for non-MCQ questions without options */}
+        {options.length === 0 && (
+          <textarea
+            value={selectedAnswer ?? ''}
+            onChange={(e) => !result && setSelectedAnswer(e.target.value || null)}
+            disabled={!!result}
+            placeholder="Type your answer here..."
+            className="w-full min-h-[100px] px-4 py-3 rounded-lg border text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
+          />
         )}
 
         {/* Result Feedback */}
