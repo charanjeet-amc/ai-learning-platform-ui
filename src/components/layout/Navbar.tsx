@@ -13,6 +13,7 @@ import {
   User,
   LogOut,
   History,
+  PenTool,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +29,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const theme = useAppSelector((s) => s.ui.theme);
-  const { isAuthenticated, displayName } = useAppSelector((s) => s.auth);
+  const { isAuthenticated, displayName, roles } = useAppSelector((s) => s.auth);
+  const isInstructor = roles?.includes('INSTRUCTOR') || roles?.includes('ADMIN');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -65,6 +67,22 @@ export default function Navbar() {
             );
           })}
         </nav>
+
+        {/* Instructor Link */}
+        {isInstructor && (
+          <Link
+            to="/instructor"
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+              location.pathname.startsWith('/instructor')
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            )}
+          >
+            <PenTool className="h-4 w-4" />
+            <span className="hidden md:inline">Instructor</span>
+          </Link>
+        )}
 
         {/* Right side */}
         <div className="flex items-center gap-2">

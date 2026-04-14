@@ -12,6 +12,8 @@ import DashboardPage from './pages/DashboardPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import LearningHistoryPage from './pages/LearningHistoryPage';
 import LoginPage from './pages/LoginPage';
+import InstructorDashboardPage from './pages/InstructorDashboardPage';
+import CourseEditorPage from './pages/CourseEditorPage';
 
 export default function App() {
   const theme = useAppSelector((s) => s.ui.theme);
@@ -63,6 +65,8 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/history" element={<LearningHistoryPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/instructor" element={<InstructorDashboardPage />} />
+        <Route path="/instructor/courses/:courseId/edit" element={<CourseEditorPage />} />
       </Route>
     </Routes>
   );

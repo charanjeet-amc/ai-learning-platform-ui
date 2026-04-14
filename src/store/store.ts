@@ -8,6 +8,7 @@ import { gamificationApi } from './api/gamificationApi';
 import { dashboardApi } from './api/dashboardApi';
 import { learningPathApi } from './api/learningPathApi';
 import { learningHistoryApi } from './api/learningHistoryApi';
+import { instructorApi } from './api/instructorApi';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 
@@ -24,6 +25,7 @@ export const store = configureStore({
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     [learningPathApi.reducerPath]: learningPathApi.reducer,
     [learningHistoryApi.reducerPath]: learningHistoryApi.reducer,
+    [instructorApi.reducerPath]: instructorApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -36,6 +38,7 @@ export const store = configureStore({
       dashboardApi.middleware,
       learningPathApi.middleware,
       learningHistoryApi.middleware,
+      instructorApi.middleware,
     ),
 });
 
