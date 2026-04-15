@@ -15,6 +15,7 @@ export interface Course {
   thumbnailUrl: string;
   difficulty: DifficultyLevel;
   industryVertical?: string;
+  category?: string;
   tags: string[];
   createdByName: string;
   published: boolean;

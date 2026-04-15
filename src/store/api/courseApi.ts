@@ -24,6 +24,26 @@ export const courseApi = createApi({
     searchCourses: builder.query<import('@/types').Page<import('@/types').Course>, { q: string; page?: number }>({
       query: ({ q, page = 0 }) => `/courses/search?q=${encodeURIComponent(q)}&page=${page}`,
     }),
+    filterCourses: builder.query<
+      import('@/types').Page<import('@/types').Course>,
+      { category?: string; difficulty?: string; minDuration?: number; maxDuration?: number; q?: string; page?: number; size?: number }
+    >({
+      query: ({ category, difficulty, minDuration, maxDuration, q, page = 0, size = 12 }) => {
+        const params = new URLSearchParams();
+        if (category) params.set('category', category);
+        if (difficulty) params.set('difficulty', difficulty);
+        if (minDuration !== undefined) params.set('minDuration', String(minDuration));
+        if (maxDuration !== undefined) params.set('maxDuration', String(maxDuration));
+        if (q) params.set('q', q);
+        params.set('page', String(page));
+        params.set('size', String(size));
+        return `/courses/filter?${params.toString()}`;
+      },
+      providesTags: ['CourseList'],
+    }),
+    getCategories: builder.query<string[], void>({
+      query: () => `/courses/categories`,
+    }),
     getCourse: builder.query<import('@/types').Course, string>({
       query: (id) => `/courses/${id}`,
       providesTags: (_r, _e, id) => [{ type: 'Course', id }],
@@ -42,6 +62,8 @@ export const courseApi = createApi({
 export const {
   useListCoursesQuery,
   useSearchCoursesQuery,
+  useFilterCoursesQuery,
+  useGetCategoriesQuery,
   useGetCourseQuery,
   useGetCourseTreeQuery,
   useGetCourseProgressQuery,

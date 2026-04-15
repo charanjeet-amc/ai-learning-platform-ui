@@ -39,6 +39,11 @@ export default function CourseCard({ course, progress }: CourseCardProps) {
 
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            {course.category && (
+              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                {course.category}
+              </span>
+            )}
             {course.industryVertical && (
               <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                 {course.industryVertical}
