@@ -122,21 +122,37 @@ src/
 - File naming: PascalCase for components (`CourseCard.tsx`), camelCase for utilities (`courseApi.ts`)
 - Lucide icons imported individually: `import { BookOpen } from 'lucide-react'`
 
-## Current Status (April 13, 2026)
+## Current Status (Updated April 15, 2026)
 - **LIVE** on Vercel — all pages working
 - Backend API connected via `VITE_API_URL` env var on Vercel
 - CORS configured on Railway backend to allow Vercel domain
 
 ### Working Features (All Verified E2E)
-1. **Course catalog** — browse all published courses at `/courses`
-2. **Course detail** — `/courses/:id` shows modules/topics/concepts tree, enroll/continue button
-3. **Auth** — Register + Login at `/login`, JWT stored in localStorage, logout in navbar
-4. **Enrollment** — enroll from course detail, enrollment status persisted
-5. **Course player** — 3-column layout at `/courses/:id/learn`:
+**Core Learning:**
+1. **Course catalog** — `/courses` with text search, course cards (ratings, enrollment count, duration)
+2. **Course detail** — `/courses/:id` with module/topic/concept tree, enroll/continue, null-safe (tags, rating, enrollmentCount)
+3. **Course player** — 3-column layout at `/courses/:id/learn`:
    - LHS: CourseTree (modules → topics → concepts, expandable)
-   - Center: ContentViewer (concept header + learning unit content as Markdown)
-   - RHS: AITutorPanel (GPT-4o Socratic chat with quick prompts)
-6. **AI Tutor** — real-time chat, context-aware, session tracking
+   - Center: ContentViewer (concept header + learning unit content as Markdown + GFM tables via remark-gfm)
+   - RHS: AITutorPanel (GPT-4o Socratic chat with quick prompts, remark-gfm)
+4. **Quiz/Assessment** — "Quiz" tab in course player, QuizView with MCQ/T-F/short answer, XP on correct
+5. **AI Tutor** — context-aware Socratic chat, hint escalation, session tracking
+
+**Auth & Navigation:**
+6. **Auth** — Register + Login at `/login`, JWT + localStorage persistence, post-login redirect to origin
+7. **RequireAuth** — Route guard wrapping /dashboard, /history, /instructor, /learn, /profile, /settings
+8. **Navbar** — Conditional: public (Courses, Leaderboard) vs auth (+ Dashboard, History); profile link, settings icon, instructor link for INSTRUCTOR/ADMIN roles
+
+**User Features:**
+9. **Dashboard** — `/dashboard` with XP, enrolled courses, weak areas, review queue, badges
+10. **Learning History** — `/history` with per-course progress, recent activity feed, timezone-correct timestamps
+11. **Leaderboard** — `/leaderboard` with real XP data, rank icons (trophy/medal/award for top 3)
+12. **Profile** — `/profile` with view/edit display name, bio, avatar; stats grid (XP, streaks, plan); account details
+13. **Settings** — `/settings` with change password form, delete account danger zone
+
+**Instructor:**
+14. **Instructor Dashboard** — `/instructor` with course list, create course modal, import course (DOCX)
+15. **Course Editor** — `/instructor/courses/:id/edit` with full tree editing, Markdown preview, save feedback (Saving.../Saved!), media upload (Cloudinary)
 
 ### Important Frontend-Backend Field Mappings
 - `AITutorRequest`: `query` (not `message`), requires `courseId` + `conceptId`
@@ -146,6 +162,7 @@ src/
 - `LearningUnit`: `contentType` (not `type`)
 - Seed content stored as `{"body": "..."}` — ContentViewer checks `body`, `markdown`, `text` keys
 - Always use `?? []` when accessing `.learningUnits`, `.modules`, `.topics`, `.concepts` (may be undefined)
+- Always use `?? 0` for `.rating`, `.enrollmentCount` (may be null)
 
 ### Bugs Fixed (April 13, 2026)
 1. Course detail blank → switched from `/courses/:id` to `/courses/:id/tree` API
@@ -153,12 +170,35 @@ src/
 3. Course player blank on concept click → `learningUnits` missing from API (backend fix)
 4. AI Tutor error → field name mismatches with backend, null sessionId crash
 
+### Bugs Fixed (April 14, 2026)
+5. Markdown tables not rendering → installed remark-gfm, added to ContentViewer, CourseEditor, AITutor
+6. No save feedback on editor → added saveStatus state machine (idle→saving→saved)
+7. Auth lost on page refresh → added localStorage persistence in authSlice (loadAuthState/saveAuthState)
+8. NaNh duration → formatDuration handles null/undefined, returns "—"
+9. Blank course detail → `course.tags` null; added `(course.tags ?? [])`, `(course.rating ?? 0)`, `(course.enrollmentCount ?? 0)`
+10. Nav items visible before login → split publicNavItems/authNavItems conditional on isAuthenticated
+11. No route protection → created RequireAuth component, LoginPage reads state.from for redirect
+
+### Files Added/Modified (April 14)
+- `pages/ProfilePage.tsx` — NEW: profile view/edit with avatar, stats grid, account details
+- `pages/SettingsPage.tsx` — NEW: change password + delete account
+- `store/api/userApi.ts` — NEW: RTK Query for profile/settings endpoints
+- `components/auth/RequireAuth.tsx` — NEW: auth guard with redirect
+- `components/layout/Navbar.tsx` — conditional nav items, profile/settings/instructor links
+- `components/course/ContentViewer.tsx` — remark-gfm
+- `components/ai-tutor/AITutorPanel.tsx` — remark-gfm
+- `pages/CourseEditorPage.tsx` — remark-gfm, save feedback
+- `pages/CourseDetailPage.tsx` — null safety for rating, enrollmentCount, tags
+- `pages/CourseCard.tsx` — null safety
+- `lib/utils.ts` — formatDuration handles null
+- `store/slices/authSlice.ts` — localStorage persistence
+- `pages/LoginPage.tsx` — redirect to state.from after login
+- `App.tsx` — RequireAuth wrappers, /profile and /settings routes
+- `store/store.ts` — registered userApi reducer + middleware
+
 ## Features Not Yet Implemented
-- Quiz/assessment UI (QuizView component exists but untested end-to-end)
-- Dashboard data display (page exists but may need API fixes)
-- Leaderboard data display
-- Instructor course creation UI
+- Course catalog filter UI (difficulty/category/tags dropdowns — backend ready)
+- XP-based levels/tier progression UI
 - Admin dashboard pages
-- Mobile-responsive polish
-- User profile editing
-- Course search filters (difficulty, category)
+- AI Tutor WebSocket streaming (currently HTTP POST)
+- Mobile-responsive fine-tuning (basic responsiveness works)
