@@ -125,11 +125,19 @@ export default function HomePage() {
           <p className="mt-3 text-muted-foreground">
             Join thousands of learners using AI-powered Socratic methodology to achieve deep understanding.
           </p>
-          <Link to="/courses">
-            <Button size="lg" className="mt-6">
-              Get Started Free <ArrowRight className="h-5 w-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Link to="/courses">
+              <Button size="lg">
+                Get Started Free <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/instructor/register">
+              <Button size="lg" variant="outline">
+                <GraduationCap className="h-5 w-5 mr-2" />
+                Join as Instructor
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>

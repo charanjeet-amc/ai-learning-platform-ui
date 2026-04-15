@@ -16,6 +16,8 @@ import {
   History,
   PenTool,
   Settings,
+  ClipboardCheck,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +40,8 @@ export default function Navbar() {
   const theme = useAppSelector((s) => s.ui.theme);
   const { isAuthenticated, displayName, roles } = useAppSelector((s) => s.auth);
   const isInstructor = roles?.includes('INSTRUCTOR') || roles?.includes('ADMIN');
+  const isPendingInstructor = roles?.includes('PENDING_INSTRUCTOR');
+  const isAdmin = roles?.includes('ADMIN');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -88,6 +92,38 @@ export default function Navbar() {
           >
             <PenTool className="h-4 w-4" />
             <span className="hidden md:inline">Instructor</span>
+          </Link>
+        )}
+
+        {/* Pending instructor - Apply link */}
+        {isPendingInstructor && (
+          <Link
+            to="/instructor/apply"
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+              location.pathname === '/instructor/apply'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            )}
+          >
+            <ClipboardCheck className="h-4 w-4" />
+            <span className="hidden md:inline">Apply</span>
+          </Link>
+        )}
+
+        {/* Admin - Review Applications */}
+        {isAdmin && (
+          <Link
+            to="/admin/instructors"
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+              location.pathname.startsWith('/admin')
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            )}
+          >
+            <Shield className="h-4 w-4" />
+            <span className="hidden md:inline">Admin</span>
           </Link>
         )}
 

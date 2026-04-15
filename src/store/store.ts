@@ -9,6 +9,7 @@ import { dashboardApi } from './api/dashboardApi';
 import { learningPathApi } from './api/learningPathApi';
 import { learningHistoryApi } from './api/learningHistoryApi';
 import { instructorApi } from './api/instructorApi';
+import { instructorApplicationApi } from './api/instructorApplicationApi';
 import { userApi } from './api/userApi';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
@@ -27,6 +28,7 @@ export const store = configureStore({
     [learningPathApi.reducerPath]: learningPathApi.reducer,
     [learningHistoryApi.reducerPath]: learningHistoryApi.reducer,
     [instructorApi.reducerPath]: instructorApi.reducer,
+    [instructorApplicationApi.reducerPath]: instructorApplicationApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -41,6 +43,7 @@ export const store = configureStore({
       learningPathApi.middleware,
       learningHistoryApi.middleware,
       instructorApi.middleware,
+      instructorApplicationApi.middleware,
       userApi.middleware,
     ),
 });

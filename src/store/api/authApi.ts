@@ -37,6 +37,13 @@ export const authApi = createApi({
         body,
       }),
     }),
+    registerInstructor: builder.mutation<AuthResponse, RegisterPayload>({
+      query: (body) => ({
+        url: '/public/auth/register-instructor',
+        method: 'POST',
+        body,
+      }),
+    }),
     oauth2Google: builder.mutation<AuthResponse, OAuth2CodePayload>({
       query: (body) => ({
         url: '/public/auth/oauth2/google',
@@ -57,6 +64,7 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useRegisterInstructorMutation,
   useOauth2GoogleMutation,
   useOauth2GithubMutation,
 } = authApi;
