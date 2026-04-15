@@ -16,6 +16,7 @@ import InstructorDashboardPage from './pages/InstructorDashboardPage';
 import CourseEditorPage from './pages/CourseEditorPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
+import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import RequireAuth from './components/auth/RequireAuth';
 
 export default function App() {
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/courses/:courseId" element={<CourseDetailPage />} />
         <Route path="/courses/:courseId/learn" element={<RequireAuth><CoursePlayerPage /></RequireAuth>} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<OAuthCallbackPage />} />
         <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
         <Route path="/history" element={<RequireAuth><LearningHistoryPage /></RequireAuth>} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />

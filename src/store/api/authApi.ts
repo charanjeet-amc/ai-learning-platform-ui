@@ -14,6 +14,11 @@ export interface RegisterPayload {
   displayName: string;
 }
 
+export interface OAuth2CodePayload {
+  code: string;
+  redirectUri: string;
+}
+
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery,
@@ -32,7 +37,26 @@ export const authApi = createApi({
         body,
       }),
     }),
+    oauth2Google: builder.mutation<AuthResponse, OAuth2CodePayload>({
+      query: (body) => ({
+        url: '/public/auth/oauth2/google',
+        method: 'POST',
+        body,
+      }),
+    }),
+    oauth2Github: builder.mutation<AuthResponse, OAuth2CodePayload>({
+      query: (body) => ({
+        url: '/public/auth/oauth2/github',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useOauth2GoogleMutation,
+  useOauth2GithubMutation,
+} = authApi;
