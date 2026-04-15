@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setTheme } from '@/store/slices/uiSlice';
 import { logout } from '@/store/slices/authSlice';
+import { userApi } from '@/store/api/userApi';
 import {
   BookOpen,
   LayoutDashboard,
@@ -120,6 +121,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   dispatch(logout());
+                  dispatch(userApi.util.resetApiState());
                   localStorage.removeItem('auth_token');
                   localStorage.removeItem('auth_user');
                   navigate('/');
