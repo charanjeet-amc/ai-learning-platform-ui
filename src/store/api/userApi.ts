@@ -10,6 +10,7 @@ interface UserProfile {
   bio: string | null;
   role: string;
   subscriptionTier: string;
+  hasPassword: boolean;
   totalXp: number;
   currentStreak: number;
   longestStreak: number;
@@ -32,7 +33,7 @@ export const userApi = createApi({
     changePassword: builder.mutation<{ message: string }, { currentPassword: string; newPassword: string }>({
       query: (body) => ({ url: '/users/me/password', method: 'PUT', body }),
     }),
-    deleteAccount: builder.mutation<{ message: string }, { password: string }>({
+    deleteAccount: builder.mutation<{ message: string }, { password?: string }>({
       query: (body) => ({ url: '/users/me', method: 'DELETE', body }),
     }),
   }),

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useChangePasswordMutation, useDeleteAccountMutation } from '@/store/api/userApi';
+import { useChangePasswordMutation, useDeleteAccountMutation, useGetProfileQuery } from '@/store/api/userApi';
 import { useAppDispatch } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const dispatch = useAppDispatch();
   const [changePassword, { isLoading: changingPw }] = useChangePasswordMutation();
   const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
+  const { data: profile } = useGetProfileQuery();
+  const hasPassword = profile?.hasPassword ?? true;
 
   // Password form
   const [currentPw, setCurrentPw] = useState('');
@@ -23,6 +25,7 @@ export default function SettingsPage() {
   // Delete form
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePw, setDeletePw] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteMsg, setDeleteMsg] = useState('');
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -48,16 +51,19 @@ export default function SettingsPage() {
   };
 
   const handleDelete = async () => {
-    if (!deletePw) {
-      setDeleteMsg('Enter your password to confirm');
-      return;
+    if (hasPassword) {
+      if (!deletePw) { setDeleteMsg('Enter your password to confirm'); return; }
+    } else {
+      if (deleteConfirmText !== 'DELETE') { setDeleteMsg('Type DELETE to confirm'); return; }
     }
     try {
-      await deleteAccount({ password: deletePw }).unwrap();
+      await deleteAccount(hasPassword ? { password: deletePw } : {}).unwrap();
       dispatch(logout());
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
       navigate('/login');
     } catch {
-      setDeleteMsg('Incorrect password or failed to delete account.');
+      setDeleteMsg(hasPassword ? 'Incorrect password or failed to delete account.' : 'Failed to delete account.');
     }
   };
 
@@ -66,38 +72,49 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       {/* Change Password */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Lock className="h-4 w-4" /> Change Password
-          </CardTitle>
-          <CardDescription>Update your account password</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleChangePassword} className="space-y-3">
-            <div>
-              <label className="text-xs text-muted-foreground">Current Password</label>
-              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} required />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">New Password</label>
-              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} required />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Confirm New Password</label>
-              <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required />
-            </div>
-            {pwMsg && (
-              <p className={`text-sm ${pwMsg.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                {pwMsg.text}
-              </p>
-            )}
-            <Button type="submit" disabled={changingPw}>
-              {changingPw ? 'Changing...' : 'Change Password'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      {hasPassword ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Lock className="h-4 w-4" /> Change Password
+            </CardTitle>
+            <CardDescription>Update your account password</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleChangePassword} className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Current Password</label>
+                <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} required />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">New Password</label>
+                <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} required />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Confirm New Password</label>
+                <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required />
+              </div>
+              {pwMsg && (
+                <p className={`text-sm ${pwMsg.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {pwMsg.text}
+                </p>
+              )}
+              <Button type="submit" disabled={changingPw}>
+                {changingPw ? 'Changing...' : 'Change Password'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Lock className="h-4 w-4" /> Password
+            </CardTitle>
+            <CardDescription>You signed in with a social provider (Google/GitHub). No password is set for this account.</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Delete Account */}
       <Card className="border-red-200">
@@ -115,20 +132,31 @@ export default function SettingsPage() {
           ) : (
             <div className="space-y-3 p-4 rounded-md border border-red-200 bg-red-50/50">
               <p className="text-sm font-medium text-red-700">
-                This action cannot be undone. Enter your password to confirm.
+                {hasPassword
+                  ? 'This action cannot be undone. Enter your password to confirm.'
+                  : 'This action cannot be undone. Type DELETE to confirm.'}
               </p>
-              <Input
-                type="password"
-                placeholder="Enter your password"
-                value={deletePw}
-                onChange={(e) => setDeletePw(e.target.value)}
-              />
+              {hasPassword ? (
+                <Input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={deletePw}
+                  onChange={(e) => setDeletePw(e.target.value)}
+                />
+              ) : (
+                <Input
+                  type="text"
+                  placeholder='Type "DELETE" to confirm'
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                />
+              )}
               {deleteMsg && <p className="text-sm text-red-600">{deleteMsg}</p>}
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                   {deleting ? 'Deleting...' : 'Permanently Delete Account'}
                 </Button>
-                <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setDeletePw(''); setDeleteMsg(''); }}>
+                <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setDeletePw(''); setDeleteConfirmText(''); setDeleteMsg(''); }}>
                   Cancel
                 </Button>
               </div>
