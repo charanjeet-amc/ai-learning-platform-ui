@@ -43,8 +43,8 @@ npm run lint           # eslint
 ```
 src/
 ├── components/
-│   ├── ai-tutor/          # AITutorPanel — GPT-4o Socratic chat panel
-│   ├── assessment/        # QuizView, QuestionCard
+│   ├── ai-tutor/          # AITutorPanel — GPT-4o Socratic chat panel (hidden during quiz)
+│   ├── assessment/        # QuizView — type-specific UI (MCQ, CODING, SUBJECTIVE, SCENARIO_BASED) + AI feedback display
 │   ├── auth/              # RequireAuth
 │   ├── course/            # CourseCard, CourseTree, ContentViewer
 │   ├── gamification/      # XPBar, StreakCounter, BadgeDisplay, LeaderboardTable
@@ -56,7 +56,7 @@ src/
 │   ├── HomePage.tsx             # Landing page with "Join as Instructor" CTA
 │   ├── CourseCatalogPage.tsx     # Browse + filter courses (category, difficulty, duration)
 │   ├── CourseDetailPage.tsx      # Single course with module tree + enroll/continue
-│   ├── CoursePlayerPage.tsx      # 3-column: CourseTree | ContentViewer | AITutorPanel
+│   ├── CoursePlayerPage.tsx      # 3-column: CourseTree | ContentViewer | AITutorPanel (tutor hidden during quiz)
 │   ├── LoginPage.tsx            # Login + Register form with validation
 │   ├── DashboardPage.tsx        # Student dashboard
 │   ├── LeaderboardPage.tsx      # XP leaderboard
@@ -68,6 +68,7 @@ src/
 │   ├── InstructorDashboardPage.tsx   # Course list, create/import
 │   ├── CourseEditorPage.tsx          # Tree editing, Markdown preview, Cloudinary upload
 │   ├── AdminInstructorReviewPage.tsx # Status filters, application list, detail view, approve/reject
+│   ├── AdminCourseReviewPage.tsx     # Admin course approval/rejection page
 │   └── OAuthCallbackPage.tsx        # OAuth2 callback handler
 ├── store/
 │   ├── api/               # RTK Query API slices
@@ -81,6 +82,7 @@ src/
 │   │   ├── gamificationApi.ts     # XP, badges, leaderboard
 │   │   ├── instructorApi.ts       # instructor course management
 │   │   ├── instructorApplicationApi.ts  # submit/view application, admin list/detail/approve/reject
+│   │   ├── adminCourseApi.ts      # admin course approval/rejection
 │   │   ├── learningHistoryApi.ts  # learning history
 │   │   ├── learningPathApi.ts     # learning paths
 │   │   └── userApi.ts             # profile, settings
@@ -145,7 +147,7 @@ src/
 - File naming: PascalCase for components (`CourseCard.tsx`), camelCase for utilities (`courseApi.ts`)
 - Lucide icons imported individually: `import { BookOpen } from 'lucide-react'`
 
-## Current Status (Updated April 15, 2026)
+## Current Status (Updated April 17, 2026)
 - **LIVE** on Vercel — all pages working
 - Backend API connected via `VITE_API_URL` env var on Vercel
 - CORS configured on Railway backend to allow Vercel domain
@@ -156,30 +158,36 @@ src/
 2. **Course detail** — `/courses/:id` with module/topic/concept tree, enroll/continue, null-safe (tags, rating, enrollmentCount)
 3. **Course player** — 3-column layout at `/courses/:id/learn`:
    - LHS: CourseTree (modules → topics → concepts, expandable)
-   - Center: ContentViewer (concept header + learning unit content as Markdown + GFM tables via remark-gfm)
-   - RHS: AITutorPanel (GPT-4o Socratic chat with quick prompts, remark-gfm)
-4. **Quiz/Assessment** — "Quiz" tab in course player, QuizView with MCQ/T-F/short answer, XP on correct
-5. **AI Tutor** — context-aware Socratic chat, hint escalation, session tracking
+   - Center: ContentViewer (Markdown + GFM tables via remark-gfm) / QuizView (tabbed)
+   - RHS: AITutorPanel (hidden when Quiz tab active to prevent answer copying)
+4. **Quiz/Assessment** — "Quiz" tab in course player, type-specific UI:
+   - MCQ: radio options with colored badges
+   - CODING: dark code block with starter code + monospace textarea
+   - SUBJECTIVE: plain textarea
+   - SCENARIO_BASED: amber scenario context box + radio options
+5. **AI Tutor** — context-aware Socratic chat, hint escalation, session tracking. Hidden during quizzes.
+6. **AI-powered evaluation** — SUBJECTIVE & CODING answers evaluated by GPT-4o with score + feedback. Score badge (green ≥70%, yellow ≥40%, red <40%), AI Evaluation callout with feedback.
 
 **Auth & Navigation:**
-6. **Auth** — Register + Login at `/login`, JWT + localStorage persistence, post-login redirect to origin
-7. **RequireAuth** — Route guard wrapping /dashboard, /history, /instructor, /learn, /profile, /settings, /instructor/apply, /admin/instructors
-8. **Navbar** — Role-based: public (Courses, Leaderboard) vs auth (+ Dashboard, History); "Apply" for PENDING_INSTRUCTOR; "Instructor" for INSTRUCTOR/ADMIN; "Admin" for ADMIN
+7. **Auth** — Register + Login at `/login`, JWT + localStorage persistence, post-login redirect to origin
+8. **RequireAuth** — Route guard wrapping protected routes
+9. **Navbar** — Role-based: public (Courses, Leaderboard) vs auth (+ Dashboard, History); "Apply" for PENDING_INSTRUCTOR; "Instructor" for INSTRUCTOR/ADMIN; "Admin" for ADMIN
 
 **User Features:**
-9. **Dashboard** — `/dashboard` with XP, enrolled courses, weak areas, review queue, badges
-10. **Learning History** — `/history` with per-course progress, recent activity feed, timezone-correct timestamps
-11. **Leaderboard** — `/leaderboard` with real XP data, rank icons (trophy/medal/award for top 3)
-12. **Profile** — `/profile` with view/edit display name, bio, avatar; stats grid (XP, streaks, plan); account details
-13. **Settings** — `/settings` with change password form, delete account danger zone
+10. **Dashboard** — `/dashboard` with XP, enrolled courses, weak areas, review queue, badges
+11. **Learning History** — `/history` with per-course progress, recent activity feed, timezone-correct timestamps
+12. **Leaderboard** — `/leaderboard` with real XP data, rank icons (trophy/medal/award for top 3)
+13. **Profile** — `/profile` with view/edit display name, bio, avatar; stats grid (XP, streaks, plan); account details
+14. **Settings** — `/settings` with change password form, delete account danger zone
 
 **Instructor & Admin:**
-14. **Instructor Registration** — `/instructor/register` with 3-step visual guide, benefits section, creates PENDING_INSTRUCTOR user
-15. **Instructor Application** — `/instructor/apply` with full form: personal info (headline, bio, photo, CV), professional links (LinkedIn, GitHub, website), teaching experience (years, institution, description), online presence (YouTube URL/subscribers, other platforms), expertise & motivation
-16. **Admin Instructor Review** — `/admin/instructors` with PENDING/APPROVED/REJECTED status filter tabs, application list with avatars, detail view with all profile sections, approve/reject with notes modal
-17. **Instructor Dashboard** — `/instructor` with course list, create course modal, import course (DOCX)
-18. **Course Editor** — `/instructor/courses/:id/edit` with full tree editing, Markdown preview, save feedback (Saving.../Saved!), media upload (Cloudinary)
-19. **Homepage CTA** — "Join as Instructor" button in CTA section linking to /instructor/register
+15. **Instructor Registration** — `/instructor/register` with 3-step visual guide, benefits section, creates PENDING_INSTRUCTOR user
+16. **Instructor Application** — `/instructor/apply` with full form: personal info, professional links, teaching experience, online presence, expertise & motivation
+17. **Admin Instructor Review** — `/admin/instructors` with status filter tabs, application list, detail view, approve/reject with notes
+18. **Admin Course Management** — Course approval workflow: DRAFT → PENDING_APPROVAL → PUBLISHED / CHANGES_REQUESTED
+19. **Instructor Dashboard** — `/instructor` with course list, create course modal, import course (DOCX)
+20. **Course Editor** — `/instructor/courses/:id/edit` with full tree editing, Markdown preview, save feedback, media upload (Cloudinary)
+21. **Homepage CTA** — "Join as Instructor" button in CTA section linking to /instructor/register
 
 ### Important Frontend-Backend Field Mappings
 - `AITutorRequest`: `query` (not `message`), requires `courseId` + `conceptId`
@@ -206,6 +214,18 @@ src/
 10. Nav items visible before login → split publicNavItems/authNavItems conditional on isAuthenticated
 11. No route protection → created RequireAuth component, LoginPage reads state.from for redirect
 
+### Bugs Fixed (April 16-17, 2026)
+12. Black overlay bug → fixed z-index/modal rendering issue
+13. Admin can't edit all courses → added AdminCourseController + adminCourseApi
+14. RTK Query cache not cleared on logout → added cache invalidation on logout action in store
+15. Course approval workflow → DRAFT → PENDING_APPROVAL → PUBLISHED / CHANGES_REQUESTED
+16. "Failed to add module" → removed @NotNull from Module fields causing backend validation error
+17. "+" button visibility → fixed conditional rendering in course editor
+18. "Failed to submit for approval" → null CourseStatus on existing courses caused NPE; defaulted to DRAFT
+19. MCQ-only assessments → added CODING, SUBJECTIVE, SCENARIO_BASED question types with type-specific UI
+20. AI-powered evaluation → GPT-4o evaluates SUBJECTIVE/CODING with score + feedback; fallback to keywords
+21. AI Tutor available during quiz (cheating) → hidden AI Tutor panel + button when Quiz tab active
+
 ### Files Added/Modified (April 14)
 - `pages/ProfilePage.tsx` — NEW: profile view/edit with avatar, stats grid, account details
 - `pages/SettingsPage.tsx` — NEW: change password + delete account
@@ -224,16 +244,28 @@ src/
 - `store/store.ts` — registered userApi reducer + middleware
 
 ### Files Added/Modified (April 15)
-- `pages/CourseCatalogPage.tsx` — MODIFIED: added sidebar with category/difficulty/duration filters, uses useFilterCoursesQuery + useGetCategoriesQuery
-- `pages/HomePage.tsx` — MODIFIED: added "Join as Instructor" CTA button linking to /instructor/register
-- `pages/InstructorRegisterPage.tsx` — NEW: 3-step visual guide (Create Account → Complete Profile → Get Approved), benefits section, registration form calling registerInstructor mutation
-- `pages/InstructorApplyPage.tsx` — NEW: comprehensive application form (Personal Info, Professional Links, Teaching Experience, Online Presence, Expertise & Motivation), guards for auth/role, status display
-- `pages/AdminInstructorReviewPage.tsx` — NEW: PENDING/APPROVED/REJECTED filter tabs, application summary list with avatars/expertise/tenure, detail view with profile cards, approve/reject with modal
-- `store/api/authApi.ts` — MODIFIED: added registerInstructor mutation + useRegisterInstructorMutation hook
-- `store/api/instructorApplicationApi.ts` — NEW: full RTK Query API (getMyApplication, submitApplication, listApplications, getApplicationDetail, approveApplication, rejectApplication)
-- `store/store.ts` — MODIFIED: registered instructorApplicationApi reducer + middleware
-- `components/layout/Navbar.tsx` — MODIFIED: "Apply" link for PENDING_INSTRUCTOR, "Admin" link for ADMIN, imported ClipboardCheck + Shield icons
-- `App.tsx` — MODIFIED: added routes /instructor/register, /instructor/apply, /admin/instructors with imports
+- `pages/CourseCatalogPage.tsx` — MODIFIED: added sidebar with category/difficulty/duration filters
+- `pages/HomePage.tsx` — MODIFIED: added "Join as Instructor" CTA button
+- `pages/InstructorRegisterPage.tsx` — NEW: registration form with 3-step guide
+- `pages/InstructorApplyPage.tsx` — NEW: comprehensive application form
+- `pages/AdminInstructorReviewPage.tsx` — NEW: admin review page
+- `store/api/authApi.ts` — MODIFIED: added registerInstructor mutation
+- `store/api/instructorApplicationApi.ts` — NEW: full RTK Query API
+- `store/store.ts` — MODIFIED: registered instructorApplicationApi
+- `components/layout/Navbar.tsx` — MODIFIED: role-based "Apply"/"Admin" links
+- `App.tsx` — MODIFIED: added instructor/admin routes
+
+### Files Added/Modified (April 16-17)
+- `pages/AdminCourseReviewPage.tsx` — NEW: admin course approval/rejection page
+- `store/api/adminCourseApi.ts` — NEW: RTK Query for admin course management
+- `store/store.ts` — MODIFIED: registered adminCourseApi, added cache invalidation on logout
+- `components/assessment/QuizView.tsx` — MODIFIED: type-specific rendering (CODING/SUBJECTIVE/SCENARIO_BASED), AI feedback display with score badge
+- `pages/CoursePlayerPage.tsx` — MODIFIED: AI Tutor hidden during quiz (panel + button) to prevent cheating
+- `pages/CourseEditorPage.tsx` — MODIFIED: submit for approval, status display
+- `pages/InstructorDashboardPage.tsx` — MODIFIED: course status display
+- `components/layout/Navbar.tsx` — MODIFIED: admin course links
+- `App.tsx` — MODIFIED: added /admin/courses/:id/review route
+- `types/index.ts` — MODIFIED: added CourseStatus types
 
 ## Routes (App.tsx)
 ```
@@ -251,6 +283,7 @@ src/
 /instructor/apply          → RequireAuth > InstructorApplyPage
 /instructor/courses/:id/edit → RequireAuth > CourseEditorPage
 /admin/instructors         → RequireAuth > AdminInstructorReviewPage
+/admin/courses/:id/review  → RequireAuth > AdminCourseReviewPage
 /profile                   → RequireAuth > ProfilePage
 /settings                  → RequireAuth > SettingsPage
 ```
@@ -258,4 +291,6 @@ src/
 ## Features Not Yet Implemented
 - XP-based levels/tier progression UI
 - AI Tutor WebSocket streaming (currently HTTP POST)
+- Stripe payment flow
 - Mobile-responsive fine-tuning (basic responsiveness works)
+- Pre-assessment diagnostic fast-track
