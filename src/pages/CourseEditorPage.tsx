@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   useGetInstructorCourseQuery,
   useUpdateCourseMutation,
-  usePublishCourseMutation,
-  useUnpublishCourseMutation,
+  useSubmitForApprovalMutation,
   useAddModuleMutation,
   useDeleteModuleMutation,
   useAddTopicMutation,
@@ -21,8 +20,7 @@ import remarkGfm from 'remark-gfm';
 import {
   ArrowLeft,
   Save,
-  Eye,
-  EyeOff,
+  Send,
   Plus,
   Trash2,
   ChevronDown,
@@ -42,8 +40,7 @@ export default function CourseEditorPage() {
   const { data: course, isLoading, refetch } = useGetInstructorCourseQuery(courseId!, { skip: !courseId });
 
   const [updateCourse] = useUpdateCourseMutation();
-  const [publishCourse] = usePublishCourseMutation();
-  const [unpublishCourse] = useUnpublishCourseMutation();
+  const [submitForApproval] = useSubmitForApprovalMutation();
   const [addModule] = useAddModuleMutation();
   const [deleteModule] = useDeleteModuleMutation();
   const [addTopic] = useAddTopicMutation();
@@ -257,8 +254,14 @@ export default function CourseEditorPage() {
             </button>
             <div>
               <h1 className="font-semibold text-sm line-clamp-1">{course.title}</h1>
-              <span className={`text-xs ${course.published ? 'text-green-600' : 'text-yellow-600'}`}>
-                {course.published ? 'Published' : 'Draft'}
+              <span className={`text-xs ${
+                course.status === 'PUBLISHED' ? 'text-green-600' :
+                course.status === 'PENDING_APPROVAL' ? 'text-blue-600' :
+                course.status === 'CHANGES_REQUESTED' ? 'text-orange-600' : 'text-yellow-600'
+              }`}>
+                {course.status === 'PUBLISHED' ? 'Published' :
+                 course.status === 'PENDING_APPROVAL' ? 'Pending Approval' :
+                 course.status === 'CHANGES_REQUESTED' ? 'Changes Requested' : 'Draft'}
               </span>
             </div>
           </div>
@@ -271,19 +274,19 @@ export default function CourseEditorPage() {
               <FileUp className="h-3.5 w-3.5" />
               {isImporting ? 'Importing...' : 'Import Doc'}
             </button>
-            {course.published ? (
+            {(course.status === 'DRAFT' || course.status === 'CHANGES_REQUESTED') && (
               <button
-                onClick={async () => { await unpublishCourse(courseId!).unwrap(); refetch(); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md hover:bg-accent"
-              >
-                <EyeOff className="h-3.5 w-3.5" /> Unpublish
-              </button>
-            ) : (
-              <button
-                onClick={async () => { await publishCourse(courseId!).unwrap(); refetch(); }}
+                onClick={async () => {
+                  try {
+                    await submitForApproval(courseId!).unwrap();
+                    refetch();
+                  } catch {
+                    alert('Failed to submit for approval');
+                  }
+                }}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md"
               >
-                <Eye className="h-3.5 w-3.5" /> Publish
+                <Send className="h-3.5 w-3.5" /> Submit for Approval
               </button>
             )}
           </div>
@@ -386,7 +389,7 @@ export default function CourseEditorPage() {
                   modules.map((mod: Module) => (
                     <div key={mod.id} className="border-b last:border-b-0">
                       {/* Module */}
-                      <div className="flex items-center gap-1 px-3 py-2 hover:bg-accent/50">
+                      <div className="group flex items-center gap-1 px-3 py-2 hover:bg-accent/50">
                         <button onClick={() => toggleModule(mod.id)} className="p-0.5">
                           {expandedModules.has(mod.id) ? (
                             <ChevronDown className="h-3.5 w-3.5" />
@@ -398,10 +401,10 @@ export default function CourseEditorPage() {
                         <span className="text-sm font-medium flex-1 truncate">{mod.title}</span>
                         <button
                           onClick={() => handleAddTopic(mod.id)}
-                          className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-accent rounded"
+                          className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-accent rounded text-muted-foreground hover:text-foreground"
                           title="Add Topic"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={async () => {

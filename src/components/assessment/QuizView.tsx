@@ -11,6 +11,10 @@ import {
   Zap,
   Brain,
   ArrowRight,
+  Code2,
+  FileText,
+  BookOpen,
+  ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,6 +72,17 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
   const options: string[] = Array.isArray(rawOptions)
     ? rawOptions.map(String)
     : [];
+  const starterCode = (metadata?.starterCode as string) ?? '';
+  const language = (metadata?.language as string) ?? '';
+  const scenario = (metadata?.scenario as string) ?? '';
+
+  const questionTypeLabel = {
+    MCQ: { label: 'Multiple Choice', icon: ListChecks, color: 'text-blue-600 bg-blue-50 dark:bg-blue-950' },
+    CODING: { label: 'Coding', icon: Code2, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950' },
+    SUBJECTIVE: { label: 'Short Answer', icon: FileText, color: 'text-purple-600 bg-purple-50 dark:bg-purple-950' },
+    SCENARIO_BASED: { label: 'Scenario', icon: BookOpen, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950' },
+  }[question.type] ?? { label: question.type, icon: FileText, color: 'text-gray-600 bg-gray-50' };
+  const TypeIcon = questionTypeLabel.icon;
 
   const handleSubmit = async () => {
     if (!selectedAnswer) return;
@@ -96,23 +111,40 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
           <CardTitle className="text-base">
             Question {currentIndex + 1} of {questions.length}
           </CardTitle>
-          <span className={cn('text-xs px-2 py-0.5 rounded-full', {
-            'bg-green-100 text-green-700': question.difficulty === 'BEGINNER',
-            'bg-teal-100 text-teal-700': question.difficulty === 'EASY',
-            'bg-blue-100 text-blue-700': question.difficulty === 'MEDIUM',
-            'bg-orange-100 text-orange-700': question.difficulty === 'HARD',
-            'bg-red-100 text-red-700': question.difficulty === 'ADVANCED',
-          })}>
-            {question.difficulty}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={cn('text-xs px-2 py-0.5 rounded-full flex items-center gap-1', questionTypeLabel.color)}>
+              <TypeIcon className="h-3 w-3" />
+              {questionTypeLabel.label}
+            </span>
+            <span className={cn('text-xs px-2 py-0.5 rounded-full', {
+              'bg-green-100 text-green-700': question.difficulty === 'BEGINNER',
+              'bg-teal-100 text-teal-700': question.difficulty === 'EASY',
+              'bg-blue-100 text-blue-700': question.difficulty === 'MEDIUM',
+              'bg-orange-100 text-orange-700': question.difficulty === 'HARD',
+              'bg-red-100 text-red-700': question.difficulty === 'ADVANCED',
+            })}>
+              {question.difficulty}
+            </span>
+          </div>
         </div>
         <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-1.5 mt-2" />
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Scenario context block */}
+        {question.type === 'SCENARIO_BASED' && scenario && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50/50 dark:bg-amber-950/30 dark:border-amber-800 p-4">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium text-sm mb-2">
+              <BookOpen className="h-4 w-4" />
+              Scenario
+            </div>
+            <p className="text-sm text-foreground/90 leading-relaxed">{scenario}</p>
+          </div>
+        )}
+
         <p className="text-base font-medium">{question.questionText}</p>
 
-        {/* MCQ / Option-based questions */}
-        {options.length > 0 && (
+        {/* MCQ / SCENARIO_BASED with options */}
+        {(question.type === 'MCQ' || question.type === 'SCENARIO_BASED') && options.length > 0 && (
           <div className="space-y-2">
             {options.map((opt, i) => (
               <button
@@ -143,14 +175,36 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
           </div>
         )}
 
-        {/* Free-text fallback for non-MCQ questions without options */}
-        {options.length === 0 && (
+        {/* CODING question */}
+        {question.type === 'CODING' && (
+          <div className="space-y-3">
+            {starterCode && (
+              <div className="rounded-lg bg-zinc-900 dark:bg-zinc-950 p-4 overflow-x-auto">
+                <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                  <Code2 className="h-3.5 w-3.5" />
+                  {language || 'Code'} — Starter Code
+                </div>
+                <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">{starterCode}</pre>
+              </div>
+            )}
+            <textarea
+              value={selectedAnswer ?? ''}
+              onChange={(e) => !result && setSelectedAnswer(e.target.value || null)}
+              disabled={!!result}
+              placeholder="Write your code here..."
+              className="w-full min-h-[140px] px-4 py-3 rounded-lg border bg-zinc-50 dark:bg-zinc-900 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-60"
+            />
+          </div>
+        )}
+
+        {/* SUBJECTIVE question */}
+        {question.type === 'SUBJECTIVE' && (
           <textarea
             value={selectedAnswer ?? ''}
             onChange={(e) => !result && setSelectedAnswer(e.target.value || null)}
             disabled={!!result}
             placeholder="Type your answer here..."
-            className="w-full min-h-[100px] px-4 py-3 rounded-lg border text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
+            className="w-full min-h-[120px] px-4 py-3 rounded-lg border text-sm resize-y focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-60"
           />
         )}
 
@@ -165,9 +219,6 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
                 <>
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span className="text-green-700 dark:text-green-400">Correct!</span>
-                  <span className="ml-auto flex items-center gap-1 text-yellow-600">
-                    <Zap className="h-3.5 w-3.5" />+{result.xpEarned} XP
-                  </span>
                 </>
               ) : (
                 <>
@@ -175,8 +226,35 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
                   <span className="text-orange-700 dark:text-orange-400">Not quite...</span>
                 </>
               )}
+              {/* Score badge for AI-evaluated questions */}
+              {(question.type === 'SUBJECTIVE' || question.type === 'CODING') && result.score != null && (
+                <span className={cn(
+                  'ml-2 text-xs px-2 py-0.5 rounded-full font-medium',
+                  result.score >= 0.7 ? 'bg-green-100 text-green-700' :
+                  result.score >= 0.4 ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                )}>
+                  Score: {Math.round(result.score * 100)}%
+                </span>
+              )}
+              {result.xpEarned > 0 && (
+                <span className="ml-auto flex items-center gap-1 text-yellow-600">
+                  <Zap className="h-3.5 w-3.5" />+{result.xpEarned} XP
+                </span>
+              )}
             </div>
-            <p className="text-muted-foreground">{result.explanation}</p>
+            {/* AI feedback for subjective/coding */}
+            {(question.type === 'SUBJECTIVE' || question.type === 'CODING') && result.feedback && (
+              <div className="mt-2 mb-2 p-3 rounded-md bg-white/60 dark:bg-black/20 border border-dashed border-muted-foreground/20">
+                <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <Brain className="h-3 w-3" /> AI Evaluation
+                </p>
+                <p className="text-foreground/80">{result.feedback}</p>
+              </div>
+            )}
+            {result.explanation && (
+              <p className="text-muted-foreground">{result.explanation}</p>
+            )}
           </div>
         )}
 

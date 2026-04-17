@@ -3,6 +3,13 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setTheme } from '@/store/slices/uiSlice';
 import { logout } from '@/store/slices/authSlice';
 import { userApi } from '@/store/api/userApi';
+import { instructorApi } from '@/store/api/instructorApi';
+import { courseApi } from '@/store/api/courseApi';
+import { dashboardApi } from '@/store/api/dashboardApi';
+import { gamificationApi } from '@/store/api/gamificationApi';
+import { instructorApplicationApi } from '@/store/api/instructorApplicationApi';
+import { learningHistoryApi } from '@/store/api/learningHistoryApi';
+import { adminCourseApi } from '@/store/api/adminCourseApi';
 import {
   BookOpen,
   LayoutDashboard,
@@ -111,20 +118,34 @@ export default function Navbar() {
           </Link>
         )}
 
-        {/* Admin - Review Applications */}
+        {/* Admin - Review Applications & Courses */}
         {isAdmin && (
-          <Link
-            to="/admin/instructors"
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-              location.pathname.startsWith('/admin')
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            )}
-          >
-            <Shield className="h-4 w-4" />
-            <span className="hidden md:inline">Admin</span>
-          </Link>
+          <>
+            <Link
+              to="/admin/instructors"
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                location.pathname === '/admin/instructors'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden md:inline">Applications</span>
+            </Link>
+            <Link
+              to="/admin/courses"
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                location.pathname === '/admin/courses'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <ClipboardCheck className="h-4 w-4" />
+              <span className="hidden md:inline">Review</span>
+            </Link>
+          </>
         )}
 
         {/* Right side */}
@@ -158,6 +179,13 @@ export default function Navbar() {
                 onClick={() => {
                   dispatch(logout());
                   dispatch(userApi.util.resetApiState());
+                  dispatch(instructorApi.util.resetApiState());
+                  dispatch(courseApi.util.resetApiState());
+                  dispatch(dashboardApi.util.resetApiState());
+                  dispatch(gamificationApi.util.resetApiState());
+                  dispatch(instructorApplicationApi.util.resetApiState());
+                  dispatch(learningHistoryApi.util.resetApiState());
+                  dispatch(adminCourseApi.util.resetApiState());
                   localStorage.removeItem('auth_token');
                   localStorage.removeItem('auth_user');
                   navigate('/');

@@ -4,8 +4,7 @@ import { useAppSelector } from '@/store/hooks';
 import {
   useGetMyCoursesQuery,
   useCreateCourseMutation,
-  usePublishCourseMutation,
-  useUnpublishCourseMutation,
+  useSubmitForApprovalMutation,
   useDeleteCourseMutation,
   useImportCourseMutation,
 } from '@/store/api/instructorApi';
@@ -13,7 +12,7 @@ import {
   Plus,
   Upload,
   Eye,
-  EyeOff,
+  Send,
   Pencil,
   Trash2,
   BookOpen,
@@ -21,17 +20,21 @@ import {
   Star,
   FileUp,
   GraduationCap,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  MessageSquare,
 } from 'lucide-react';
 
 export default function InstructorDashboardPage() {
   const navigate = useNavigate();
   const { isAuthenticated, roles, displayName } = useAppSelector((s) => s.auth);
   const isInstructor = roles.includes('INSTRUCTOR') || roles.includes('ADMIN');
+  const isAdmin = roles.includes('ADMIN');
 
   const { data: courses, isLoading, refetch } = useGetMyCoursesQuery(undefined, { skip: !isInstructor });
   const [createCourse] = useCreateCourseMutation();
-  const [publishCourse] = usePublishCourseMutation();
-  const [unpublishCourse] = useUnpublishCourseMutation();
+  const [submitForApproval] = useSubmitForApprovalMutation();
   const [deleteCourse] = useDeleteCourseMutation();
   const [importCourse, { isLoading: isImporting }] = useImportCourseMutation();
 
@@ -162,7 +165,7 @@ export default function InstructorDashboardPage() {
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
               <Eye className="h-4 w-4" /> Published
             </div>
-            <p className="text-2xl font-bold">{courses.filter(c => c.published).length}</p>
+            <p className="text-2xl font-bold">{courses.filter(c => c.status === 'PUBLISHED').length}</p>
           </div>
           <div className="p-4 rounded-lg border bg-card">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
@@ -218,12 +221,24 @@ export default function InstructorDashboardPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold line-clamp-2">{course.title}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-2 ${
-                    course.published ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                  <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-2 flex items-center gap-1 ${
+                    course.status === 'PUBLISHED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                    course.status === 'PENDING_APPROVAL' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                    course.status === 'CHANGES_REQUESTED' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                   }`}>
-                    {course.published ? 'Published' : 'Draft'}
+                    {course.status === 'PUBLISHED' && <CheckCircle className="h-3 w-3" />}
+                    {course.status === 'PENDING_APPROVAL' && <Clock className="h-3 w-3" />}
+                    {course.status === 'CHANGES_REQUESTED' && <AlertCircle className="h-3 w-3" />}
+                    {course.status === 'PUBLISHED' ? 'Published' :
+                     course.status === 'PENDING_APPROVAL' ? 'Pending' :
+                     course.status === 'CHANGES_REQUESTED' ? 'Changes Req.' : 'Draft'}
                   </span>
                 </div>
+
+                {roles.includes('ADMIN') && course.createdByName && (
+                  <p className="text-xs text-primary/70 mb-1">by {course.createdByName}</p>
+                )}
 
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                   {course.description || 'No description'}
@@ -239,6 +254,14 @@ export default function InstructorDashboardPage() {
                   <span className="capitalize">{(course.difficulty ?? 'BEGINNER').toLowerCase()}</span>
                 </div>
 
+                {/* Admin feedback */}
+                {course.status === 'CHANGES_REQUESTED' && course.adminFeedback && (
+                  <div className="flex items-start gap-2 p-2 mb-3 rounded-md bg-orange-50 dark:bg-orange-900/10 text-orange-700 dark:text-orange-400 text-xs">
+                    <MessageSquare className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span className="line-clamp-3">{course.adminFeedback}</span>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-3 border-t">
                   <button
@@ -247,27 +270,29 @@ export default function InstructorDashboardPage() {
                   >
                     <Pencil className="h-3.5 w-3.5" /> Edit
                   </button>
-                  {course.published ? (
+                  {(course.status === 'DRAFT' || course.status === 'CHANGES_REQUESTED') && !isAdmin && (
                     <button
-                      onClick={async () => { await unpublishCourse(course.id).unwrap(); refetch(); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md hover:bg-accent transition-colors"
-                    >
-                      <EyeOff className="h-3.5 w-3.5" /> Unpublish
-                    </button>
-                  ) : (
-                    <button
-                      onClick={async () => { await publishCourse(course.id).unwrap(); refetch(); }}
+                      onClick={async () => {
+                        try {
+                          await submitForApproval(course.id).unwrap();
+                          refetch();
+                        } catch {
+                          alert('Failed to submit for approval');
+                        }
+                      }}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary rounded-md hover:bg-primary/10 transition-colors"
                     >
-                      <Eye className="h-3.5 w-3.5" /> Publish
+                      <Send className="h-3.5 w-3.5" /> Submit
                     </button>
                   )}
-                  <button
-                    onClick={() => handleDelete(course.id, course.title)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-destructive rounded-md hover:bg-destructive/10 transition-colors ml-auto"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  {(course.status === 'DRAFT' || course.status === 'CHANGES_REQUESTED' || isAdmin) && (
+                    <button
+                      onClick={() => handleDelete(course.id, course.title)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-destructive rounded-md hover:bg-destructive/10 transition-colors ml-auto"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -52,17 +52,10 @@ export const instructorApi = createApi({
       ],
     }),
 
-    // Publish / unpublish
-    publishCourse: builder.mutation<void, string>({
+    // Submit for approval (DRAFT/CHANGES_REQUESTED → PENDING_APPROVAL)
+    submitForApproval: builder.mutation<void, string>({
       query: (courseId) => ({
-        url: `/instructor/courses/${courseId}/publish`,
-        method: 'POST',
-      }),
-      invalidatesTags: ['InstructorCourses'],
-    }),
-    unpublishCourse: builder.mutation<void, string>({
-      query: (courseId) => ({
-        url: `/instructor/courses/${courseId}/unpublish`,
+        url: `/instructor/courses/${courseId}/submit-for-approval`,
         method: 'POST',
       }),
       invalidatesTags: ['InstructorCourses'],
@@ -185,8 +178,7 @@ export const {
   useGetInstructorCourseQuery,
   useCreateCourseMutation,
   useUpdateCourseMutation,
-  usePublishCourseMutation,
-  useUnpublishCourseMutation,
+  useSubmitForApprovalMutation,
   useDeleteCourseMutation,
   useImportCourseMutation,
   useImportContentMutation,

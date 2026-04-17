@@ -2,6 +2,7 @@
 export type DifficultyLevel = 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD' | 'ADVANCED';
 export type ContentType = 'TEXT' | 'VIDEO' | 'INTERACTIVE' | 'CODE_EXERCISE' | 'DIAGRAM' | 'QUIZ' | 'SIMULATION' | 'AUDIO';
 export type ConceptStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'STRUGGLING' | 'MASTERED' | 'REVIEW_NEEDED';
+export type CourseStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'PUBLISHED' | 'CHANGES_REQUESTED';
 export type QuestionType = 'MCQ' | 'CODING' | 'SUBJECTIVE' | 'SCENARIO_BASED';
 export type LearningStyle = 'VISUAL' | 'READING' | 'KINESTHETIC' | 'AUDITORY';
 
@@ -19,6 +20,8 @@ export interface Course {
   tags: string[];
   createdByName: string;
   published: boolean;
+  status?: CourseStatus;
+  adminFeedback?: string;
   rating: number;
   enrollmentCount: number;
   estimatedDurationMinutes: number;
