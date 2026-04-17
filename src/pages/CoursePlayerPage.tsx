@@ -110,20 +110,22 @@ export default function CoursePlayerPage() {
               </TabsTrigger>
             </TabsList>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => dispatch(toggleAIPanel())}
-              className="gap-1.5"
-            >
-              <Bot className="h-4 w-4" />
-              AI Tutor
-              {aiPanelOpen ? (
-                <PanelRightClose className="h-3.5 w-3.5" />
-              ) : (
-                <PanelRightOpen className="h-3.5 w-3.5" />
-              )}
-            </Button>
+            {activeTab !== 'quiz' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => dispatch(toggleAIPanel())}
+                className="gap-1.5"
+              >
+                <Bot className="h-4 w-4" />
+                AI Tutor
+                {aiPanelOpen ? (
+                  <PanelRightClose className="h-3.5 w-3.5" />
+                ) : (
+                  <PanelRightOpen className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            )}
           </div>
 
           <TabsContent value="learn">
@@ -148,21 +150,23 @@ export default function CoursePlayerPage() {
         </Tabs>
       </div>
 
-      {/* RHS: AI Tutor Panel */}
-      <div
-        className={cn(
-          'border-l bg-card shrink-0 overflow-hidden transition-all duration-300',
-          aiPanelOpen ? 'w-80' : 'w-0'
-        )}
-      >
-        {aiPanelOpen && (
-          <AITutorPanel
-            courseId={courseId!}
-            conceptId={activeConceptId}
-            conceptTitle={activeConcept?.title}
-          />
-        )}
-      </div>
+      {/* RHS: AI Tutor Panel - hidden during quiz to prevent answer copying */}
+      {activeTab !== 'quiz' && (
+        <div
+          className={cn(
+            'border-l bg-card shrink-0 overflow-hidden transition-all duration-300',
+            aiPanelOpen ? 'w-80' : 'w-0'
+          )}
+        >
+          {aiPanelOpen && (
+            <AITutorPanel
+              courseId={courseId!}
+              conceptId={activeConceptId}
+              conceptTitle={activeConcept?.title}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
