@@ -111,7 +111,7 @@ export const instructorApi = createApi({
       }),
       invalidatesTags: (_r, _e, { courseId }) => [{ type: 'InstructorCourse', id: courseId }],
     }),
-    updateModule: builder.mutation<{ id: string; title: string }, { moduleId: string; title: string; description?: string; orderIndex?: number }>({
+    updateModule: builder.mutation<{ id: string; title: string }, { moduleId: string; title: string; description?: string; orderIndex?: number; learningObjectives?: string[] }>({
       query: ({ moduleId, ...body }) => ({
         url: `/instructor/modules/${moduleId}`,
         method: 'PUT',
@@ -127,10 +127,17 @@ export const instructorApi = createApi({
     }),
 
     // Topic CRUD
-    addTopic: builder.mutation<{ id: string; title: string; orderIndex: number }, { moduleId: string; title: string; orderIndex?: number }>({
+    addTopic: builder.mutation<{ id: string; title: string; orderIndex: number }, { moduleId: string; title: string; orderIndex?: number; estimatedTimeMinutes?: number; tags?: string[] }>({
       query: ({ moduleId, ...body }) => ({
         url: `/instructor/modules/${moduleId}/topics`,
         method: 'POST',
+        body,
+      }),
+    }),
+    updateTopic: builder.mutation<{ id: string; title: string }, { topicId: string; title: string; orderIndex?: number; estimatedTimeMinutes?: number; tags?: string[] }>({
+      query: ({ topicId, ...body }) => ({
+        url: `/instructor/topics/${topicId}`,
+        method: 'PUT',
         body,
       }),
     }),
@@ -179,6 +186,7 @@ export const {
   useUpdateModuleMutation,
   useDeleteModuleMutation,
   useAddTopicMutation,
+  useUpdateTopicMutation,
   useDeleteTopicMutation,
   useAddConceptMutation,
   useUpdateConceptMutation,

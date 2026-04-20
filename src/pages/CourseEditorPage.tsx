@@ -5,8 +5,10 @@ import {
   useUpdateCourseMutation,
   useSubmitForApprovalMutation,
   useAddModuleMutation,
+  useUpdateModuleMutation,
   useDeleteModuleMutation,
   useAddTopicMutation,
+  useUpdateTopicMutation,
   useDeleteTopicMutation,
   useAddConceptMutation,
   useUpdateConceptMutation,
@@ -42,8 +44,10 @@ export default function CourseEditorPage() {
   const [updateCourse] = useUpdateCourseMutation();
   const [submitForApproval] = useSubmitForApprovalMutation();
   const [addModule] = useAddModuleMutation();
+  const [updateModule] = useUpdateModuleMutation();
   const [deleteModule] = useDeleteModuleMutation();
   const [addTopic] = useAddTopicMutation();
+  const [updateTopic] = useUpdateTopicMutation();
   const [deleteTopic] = useDeleteTopicMutation();
   const [addConcept] = useAddConceptMutation();
   const [updateConcept] = useUpdateConceptMutation();
@@ -68,6 +72,16 @@ export default function CourseEditorPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+
+  // Module / Topic editing
+  type EditorSelection = { type: 'module'; id: string } | { type: 'topic'; id: string } | null;
+  const [editorSelection, setEditorSelection] = useState<EditorSelection>(null);
+  const [moduleTitle, setModuleTitle] = useState('');
+  const [moduleDesc, setModuleDesc] = useState('');
+  const [moduleObjectives, setModuleObjectives] = useState('');
+  const [topicTitle, setTopicTitle] = useState('');
+  const [topicTime, setTopicTime] = useState('');
+  const [topicTags, setTopicTags] = useState('');
 
   // Initialize meta fields when course loads
   const initMetaFields = useCallback(() => {
@@ -99,10 +113,65 @@ export default function CourseEditorPage() {
 
   const selectConcept = (concept: Concept) => {
     setSelectedConceptId(concept.id);
+    setEditorSelection(null);
     setEditingTitle(concept.title);
     const body = concept.learningUnits?.[0]?.content?.['body'] as string ?? '';
     setEditingContent(body);
     setShowPreview(false);
+  };
+
+  const selectModule = (mod: Module) => {
+    setEditorSelection({ type: 'module', id: mod.id });
+    setSelectedConceptId(null);
+    setModuleTitle(mod.title);
+    setModuleDesc(mod.description ?? '');
+    setModuleObjectives((mod.learningObjectives ?? []).join('\n'));
+  };
+
+  const selectTopic = (topic: Topic) => {
+    setEditorSelection({ type: 'topic', id: topic.id });
+    setSelectedConceptId(null);
+    setTopicTitle(topic.title);
+    setTopicTime(topic.estimatedTimeMinutes?.toString() ?? '');
+    setTopicTags((topic.tags ?? []).join(', '));
+  };
+
+  const saveModule = async () => {
+    if (!editorSelection || editorSelection.type !== 'module') return;
+    setSaveStatus('saving');
+    try {
+      await updateModule({
+        moduleId: editorSelection.id,
+        title: moduleTitle,
+        description: moduleDesc || undefined,
+        learningObjectives: moduleObjectives.trim() ? moduleObjectives.split('\n').filter(Boolean) : undefined,
+      }).unwrap();
+      refetch();
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('idle');
+      alert('Failed to save module');
+    }
+  };
+
+  const saveTopic = async () => {
+    if (!editorSelection || editorSelection.type !== 'topic') return;
+    setSaveStatus('saving');
+    try {
+      await updateTopic({
+        topicId: editorSelection.id,
+        title: topicTitle,
+        estimatedTimeMinutes: topicTime ? parseInt(topicTime) : undefined,
+        tags: topicTags.trim() ? topicTags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+      }).unwrap();
+      refetch();
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('idle');
+      alert('Failed to save topic');
+    }
   };
 
   const saveConcept = async () => {
@@ -391,7 +460,9 @@ export default function CourseEditorPage() {
                   modules.map((mod: Module) => (
                     <div key={mod.id} className="border-b last:border-b-0">
                       {/* Module */}
-                      <div className="group flex items-center gap-1 px-3 py-2 hover:bg-accent/50">
+                      <div className={`group flex items-center gap-1 px-3 py-2 hover:bg-accent/50 ${
+                        editorSelection?.type === 'module' && editorSelection.id === mod.id ? 'bg-primary/10' : ''
+                      }`}>
                         <button onClick={() => toggleModule(mod.id)} className="p-0.5">
                           {expandedModules.has(mod.id) ? (
                             <ChevronDown className="h-3.5 w-3.5" />
@@ -400,7 +471,14 @@ export default function CourseEditorPage() {
                           )}
                         </button>
                         <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                        <span className="text-sm font-medium flex-1 truncate">{mod.title}</span>
+                        <button
+                          onClick={() => { selectModule(mod); if (!expandedModules.has(mod.id)) toggleModule(mod.id); }}
+                          className={`text-sm font-medium flex-1 truncate text-left ${
+                            editorSelection?.type === 'module' && editorSelection.id === mod.id ? 'text-primary' : ''
+                          }`}
+                        >
+                          {mod.title}
+                        </button>
                         <button
                           onClick={() => handleAddTopic(mod.id)}
                           className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-accent rounded text-muted-foreground hover:text-foreground"
@@ -423,7 +501,9 @@ export default function CourseEditorPage() {
                       {expandedModules.has(mod.id) && (mod.topics ?? []).map((topic: Topic) => (
                         <div key={topic.id}>
                           {/* Topic */}
-                          <div className="flex items-center gap-1 pl-8 pr-3 py-1.5 hover:bg-accent/50">
+                          <div className={`flex items-center gap-1 pl-8 pr-3 py-1.5 hover:bg-accent/50 ${
+                            editorSelection?.type === 'topic' && editorSelection.id === topic.id ? 'bg-primary/10' : ''
+                          }`}>
                             <button onClick={() => toggleTopic(topic.id)} className="p-0.5">
                               {expandedTopics.has(topic.id) ? (
                                 <ChevronDown className="h-3 w-3" />
@@ -431,7 +511,14 @@ export default function CourseEditorPage() {
                                 <ChevronRight className="h-3 w-3" />
                               )}
                             </button>
-                            <span className="text-sm flex-1 truncate text-muted-foreground">{topic.title}</span>
+                            <button
+                              onClick={() => { selectTopic(topic); if (!expandedTopics.has(topic.id)) toggleTopic(topic.id); }}
+                              className={`text-sm flex-1 truncate text-left ${
+                                editorSelection?.type === 'topic' && editorSelection.id === topic.id ? 'text-primary' : 'text-muted-foreground'
+                              }`}
+                            >
+                              {topic.title}
+                            </button>
                             <button onClick={() => handleAddConcept(topic.id)} className="p-0.5 hover:bg-accent rounded">
                               <Plus className="h-3 w-3" />
                             </button>
@@ -482,7 +569,109 @@ export default function CourseEditorPage() {
 
           {/* Right — Content Editor */}
           <div className="flex-1 min-w-0">
-            {selectedConceptId ? (
+            {/* Module Editor */}
+            {editorSelection?.type === 'module' && (
+              <div className="rounded-lg border bg-card">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-semibold">Edit Module</h3>
+                  <button
+                    onClick={saveModule}
+                    disabled={saveStatus === 'saving'}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      saveStatus === 'saved' ? 'bg-green-600 text-white' : saveStatus === 'saving' ? 'bg-primary/70 text-primary-foreground' : 'bg-primary text-primary-foreground'
+                    }`}
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
+                  </button>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <input
+                      value={moduleTitle}
+                      onChange={(e) => setModuleTitle(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background"
+                      placeholder="Module title"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Description</label>
+                    <textarea
+                      value={moduleDesc}
+                      onChange={(e) => setModuleDesc(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background resize-none"
+                      rows={4}
+                      placeholder="Describe what this module covers..."
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Learning Objectives</label>
+                    <p className="text-xs text-muted-foreground mb-1.5">One objective per line</p>
+                    <textarea
+                      value={moduleObjectives}
+                      onChange={(e) => setModuleObjectives(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background resize-none"
+                      rows={5}
+                      placeholder={"Understand core concepts of this module\nApply principles in practical scenarios\nBuild foundational skills"}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Topic Editor */}
+            {editorSelection?.type === 'topic' && (
+              <div className="rounded-lg border bg-card">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-semibold">Edit Topic</h3>
+                  <button
+                    onClick={saveTopic}
+                    disabled={saveStatus === 'saving'}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      saveStatus === 'saved' ? 'bg-green-600 text-white' : saveStatus === 'saving' ? 'bg-primary/70 text-primary-foreground' : 'bg-primary text-primary-foreground'
+                    }`}
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
+                  </button>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <input
+                      value={topicTitle}
+                      onChange={(e) => setTopicTitle(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background"
+                      placeholder="Topic title"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Estimated Time (minutes)</label>
+                    <input
+                      value={topicTime}
+                      onChange={(e) => setTopicTime(e.target.value.replace(/[^0-9]/g, ''))}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background"
+                      placeholder="e.g. 30"
+                      type="number"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Tags</label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Comma-separated</p>
+                    <input
+                      value={topicTags}
+                      onChange={(e) => setTopicTags(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border rounded-md bg-background"
+                      placeholder="e.g. fundamentals, python, data-structures"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Concept Editor */}
+            {selectedConceptId && !editorSelection ? (
               <div className="rounded-lg border bg-card">
                 {/* Editor Header */}
                 <div className="flex items-center justify-between p-4 border-b">
@@ -616,15 +805,15 @@ Tip: Use the toolbar above for quick formatting."
                   )}
                 </div>
               </div>
-            ) : (
+            ) : !editorSelection ? (
               <div className="rounded-lg border bg-card flex items-center justify-center min-h-[70vh]">
                 <div className="text-center text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">Select a concept to edit</p>
+                  <p className="font-medium">Select a module, topic, or concept to edit</p>
                   <p className="text-sm mt-1">Choose from the course structure on the left, or add new content</p>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
