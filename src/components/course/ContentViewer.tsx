@@ -58,10 +58,15 @@ export default function ContentViewer({ concept, activeLearningUnit, mastery, on
               <span className="font-medium">{Math.round(mastery * 100)}%</span>
             </div>
             <Progress value={mastery * 100} className="h-2" />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Score ≥85% on quizzes to master this concept
+            </p>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {(concept.learningUnits ?? []).length} units
-          </span>
+          {(concept.learningUnits ?? []).length > 0 && (
+            <span className="text-xs text-muted-foreground" title="Learning materials like text lessons, videos, code exercises, and quizzes">
+              {(concept.learningUnits ?? []).length} {(concept.learningUnits ?? []).length === 1 ? 'learning material' : 'learning materials'}
+            </span>
+          )}
         </div>
       </div>
 

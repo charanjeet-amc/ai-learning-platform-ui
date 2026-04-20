@@ -141,6 +141,9 @@ export default function CourseDetailPage() {
                   <p className="text-xs text-muted-foreground mt-1">
                     {progress.masteredConcepts}/{progress.totalConcepts} concepts mastered
                   </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Master a concept by scoring ≥85% on its quizzes
+                  </p>
                 </div>
               )}
 

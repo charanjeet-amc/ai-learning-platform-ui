@@ -53,6 +53,19 @@ export default function CoursePlayerPage() {
 
   const [activeLearningUnit, setActiveLearningUnit] = useState<LearningUnit | null>(null);
   const [activeTab, setActiveTab] = useState('learn');
+
+  // Build progressMap from learningPath steps
+  const progressMap = useMemo(() => {
+    if (!learningPath?.steps) return {};
+    const map: Record<string, { mastery: number; status: string }> = {};
+    for (const step of learningPath.steps) {
+      map[step.conceptId] = {
+        mastery: step.masteryLevel ?? 0,
+        status: step.status ?? 'NOT_STARTED',
+      };
+    }
+    return map;
+  }, [learningPath]);
   const [selection, setSelection] = useState<TreeSelection>(null);
 
   // Auto-select first module when course loads
@@ -237,9 +250,10 @@ export default function CoursePlayerPage() {
               <Compass className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Up next: {learningPath.nextConceptTitle}</span>
             </button>
+            <p className="text-[10px] text-muted-foreground mt-1">Recommended concept based on your progress</p>
             <div className="flex items-center gap-2 mt-1.5">
               <Progress value={learningPath.totalSteps > 0 ? (learningPath.completedSteps / learningPath.totalSteps) * 100 : 0} className="h-1 flex-1" />
-              <span className="text-[10px] text-muted-foreground">{learningPath.completedSteps}/{learningPath.totalSteps}</span>
+              <span className="text-[10px] text-muted-foreground" title={`${learningPath.completedSteps} concepts mastered out of ${learningPath.totalSteps} total`}>{learningPath.completedSteps}/{learningPath.totalSteps} mastered</span>
             </div>
           </div>
         )}
@@ -248,7 +262,7 @@ export default function CoursePlayerPage() {
             course={course}
             selection={selection}
             onSelect={handleTreeSelect}
-            progressMap={{}}
+            progressMap={progressMap}
           />
         </div>
       </div>
@@ -305,7 +319,7 @@ export default function CoursePlayerPage() {
                 <ContentViewer
                   concept={activeConcept}
                   activeLearningUnit={activeLearningUnit}
-                  mastery={0}
+                  mastery={activeConceptId ? (progressMap[activeConceptId]?.mastery ?? 0) : 0}
                   onUnitSelect={setActiveLearningUnit}
                 />
               </TabsContent>
@@ -476,7 +490,7 @@ function TopicOverview({ topic, module }: { topic: Topic; module: Module }) {
                 )}
                 <span className="text-[10px] mt-1 inline-block text-muted-foreground capitalize">
                   {concept.difficultyLevel?.toLowerCase()}
-                  {(concept.learningUnits ?? []).length > 0 && ` · ${concept.learningUnits.length} units`}
+                  {(concept.learningUnits ?? []).length > 0 && ` · ${concept.learningUnits.length} learning ${concept.learningUnits.length === 1 ? 'material' : 'materials'}`}
                 </span>
               </div>
             </div>

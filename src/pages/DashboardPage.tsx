@@ -235,6 +235,46 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* XP Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-5 w-5 text-yellow-500" />
+            How XP Works
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Experience Points (XP) measure your learning activity. Earn XP to level up, climb the leaderboard, and unlock badges.
+          </p>
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Earning XP</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm rounded-lg border p-3">
+                <span>Correct quiz answer (first time)</span>
+                <span className="font-bold text-yellow-600">+10 XP</span>
+              </div>
+              <div className="flex items-center justify-between text-sm rounded-lg border p-3">
+                <span>Master a concept (≥85% mastery)</span>
+                <span className="font-bold text-yellow-600">+50 XP</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Levels</h4>
+            <p className="text-sm text-muted-foreground">
+              Each level requires progressively more XP. Level 1 needs 500 XP, Level 2 needs 1,000 XP, and so on. Your level is shown in the XP bar above.
+            </p>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Leaderboard</h4>
+            <p className="text-sm text-muted-foreground">
+              Your total XP determines your rank on the <a href="/leaderboard" className="text-primary hover:underline">leaderboard</a>. Compete with other learners and track your standing.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
