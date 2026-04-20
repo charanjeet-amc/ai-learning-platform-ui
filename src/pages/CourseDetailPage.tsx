@@ -21,6 +21,8 @@ export default function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const token = useAppSelector((s) => s.auth.token);
+  const roles = useAppSelector((s) => s.auth.roles);
+  const isInstructor = roles?.includes('INSTRUCTOR') || roles?.includes('PENDING_INSTRUCTOR');
   const { data: course, isLoading } = useGetCourseTreeQuery(courseId!);
   const { data: isEnrolled } = useIsEnrolledQuery(courseId!, { skip: !token });
   const { data: progress } = useGetCourseProgressQuery(courseId!, { skip: !token || !isEnrolled });
@@ -143,7 +145,13 @@ export default function CourseDetailPage() {
               )}
 
               {/* Action Button */}
-              {isEnrolled ? (
+              {isInstructor ? (
+                <div className="text-center p-4 rounded-lg bg-secondary">
+                  <p className="text-sm text-muted-foreground">
+                    Instructors cannot enroll in courses. Use a student account to take courses.
+                  </p>
+                </div>
+              ) : isEnrolled ? (
                 <Link to={`/courses/${courseId}/learn`} className="block">
                   <Button className="w-full" size="lg">
                     <Play className="h-5 w-5 mr-2" />

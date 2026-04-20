@@ -1,7 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from './courseApi';
 import type { Course } from '@/types';
-import type { AuthResponse } from './authTypes';
 
 export const instructorApi = createApi({
   reducerPath: 'instructorApi',
@@ -162,14 +161,6 @@ export const instructorApi = createApi({
         method: 'DELETE',
       }),
     }),
-
-    // Become instructor
-    becomeInstructor: builder.mutation<AuthResponse, void>({
-      query: () => ({
-        url: '/auth/become-instructor',
-        method: 'POST',
-      }),
-    }),
   }),
 });
 
@@ -191,5 +182,4 @@ export const {
   useAddConceptMutation,
   useUpdateConceptMutation,
   useDeleteConceptMutation,
-  useBecomeInstructorMutation,
 } = instructorApi;

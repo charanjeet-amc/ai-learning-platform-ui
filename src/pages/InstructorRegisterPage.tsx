@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAppDispatch } from '@/store/hooks';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { useRegisterInstructorMutation } from '@/store/api/authApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { GraduationCap, Loader2, Users, CheckCircle, Clock } from 'lucide-react'
 export default function InstructorRegisterPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
   const [registerInstructor, { isLoading }] = useRegisterInstructorMutation();
 
   const [username, setUsername] = useState('');
@@ -18,6 +19,10 @@ export default function InstructorRegisterPage() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

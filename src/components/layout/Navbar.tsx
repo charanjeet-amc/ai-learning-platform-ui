@@ -40,15 +40,21 @@ const authNavItems = [
   { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
 ];
 
+const instructorNavItems = [
+  { label: 'Courses', href: '/courses', icon: BookOpen },
+  { label: 'Instructor', href: '/instructor', icon: PenTool },
+];
+
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const theme = useAppSelector((s) => s.ui.theme);
   const { isAuthenticated, displayName, roles } = useAppSelector((s) => s.auth);
-  const isInstructor = roles?.includes('INSTRUCTOR') || roles?.includes('ADMIN');
+  const isInstructor = roles?.includes('INSTRUCTOR');
   const isPendingInstructor = roles?.includes('PENDING_INSTRUCTOR');
   const isAdmin = roles?.includes('ADMIN');
+  const isInstructorOnly = isInstructor && !isAdmin;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -65,7 +71,7 @@ export default function Navbar() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-1">
-          {(isAuthenticated ? authNavItems : publicNavItems).map((item) => {
+          {(isAuthenticated ? (isInstructorOnly ? instructorNavItems : authNavItems) : publicNavItems).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.href);
             return (
@@ -86,8 +92,8 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Instructor Link */}
-        {isInstructor && (
+        {/* Instructor Link — only for admins (instructors get it in nav items) */}
+        {isAdmin && (
           <Link
             to="/instructor"
             className={cn(
