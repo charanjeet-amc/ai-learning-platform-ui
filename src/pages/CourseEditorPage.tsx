@@ -440,6 +440,73 @@ export default function CourseEditorPage() {
               )}
             </div>
 
+            {/* Hero Image */}
+            <div className="rounded-lg border bg-card p-4 mb-4">
+              <h3 className="font-semibold text-sm mb-3">Course Hero Image</h3>
+              {course.thumbnailUrl ? (
+                <div className="relative group">
+                  <img
+                    src={course.thumbnailUrl}
+                    alt={course.title}
+                    className="w-full h-36 object-cover rounded-md"
+                  />
+                  <button
+                    onClick={async () => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = async (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (!file) return;
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          formData.append('folder', 'courses');
+                          const result = await uploadMedia(formData).unwrap();
+                          await updateCourse({ courseId: courseId!, data: { title: course.title, thumbnailUrl: result.url } }).unwrap();
+                          refetch();
+                        } catch {
+                          alert('Failed to upload image');
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md text-white text-sm font-medium"
+                  >
+                    <Image className="h-4 w-4 mr-1.5" /> Change Image
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={async () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('folder', 'courses');
+                        const result = await uploadMedia(formData).unwrap();
+                        await updateCourse({ courseId: courseId!, data: { title: course.title, thumbnailUrl: result.url } }).unwrap();
+                        refetch();
+                      } catch {
+                        alert('Failed to upload image');
+                      }
+                    };
+                    input.click();
+                  }}
+                  className="w-full h-36 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                >
+                  <Image className="h-8 w-8 mb-2 opacity-40" />
+                  <span className="text-sm font-medium">Upload Hero Image</span>
+                  <span className="text-xs mt-0.5">Shown on course card &amp; detail page</span>
+                </button>
+              )}
+            </div>
+
             {/* Structure Tree */}
             <div className="rounded-lg border bg-card">
               <div className="flex items-center justify-between p-3 border-b">
