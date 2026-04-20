@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetCourseTreeQuery } from '@/store/api/courseApi';
 import { useGetQuestionsQuery } from '@/store/api/assessmentApi';
@@ -54,6 +54,13 @@ export default function CoursePlayerPage() {
   const [activeLearningUnit, setActiveLearningUnit] = useState<LearningUnit | null>(null);
   const [activeTab, setActiveTab] = useState('learn');
   const [selection, setSelection] = useState<TreeSelection>(null);
+
+  // Auto-select first module when course loads
+  useEffect(() => {
+    if (course && course.modules.length > 0 && !selection) {
+      setSelection({ type: 'module', id: course.modules[0]!.id });
+    }
+  }, [course]);
 
   // Track which concepts have quizzes (we only know for the active one via RTK query)
   // For nav, we'll check when stepping: if the concept IS the active one and has questions, show quiz
