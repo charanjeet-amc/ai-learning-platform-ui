@@ -22,6 +22,7 @@ export interface Course {
   published: boolean;
   status?: CourseStatus;
   adminFeedback?: string;
+  instructorNotes?: string;
   rating: number;
   enrollmentCount: number;
   estimatedDurationMinutes: number;

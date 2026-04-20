@@ -277,8 +277,10 @@ export default function CourseEditorPage() {
             {(course.status === 'DRAFT' || course.status === 'CHANGES_REQUESTED') && (
               <button
                 onClick={async () => {
+                  const notes = prompt('Add notes for the admin (what was changed/added):');
+                  if (notes === null) return;
                   try {
-                    await submitForApproval(courseId!).unwrap();
+                    await submitForApproval({ courseId: courseId!, instructorNotes: notes || undefined }).unwrap();
                     refetch();
                   } catch {
                     alert('Failed to submit for approval');

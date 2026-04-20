@@ -52,10 +52,11 @@ export const instructorApi = createApi({
     }),
 
     // Submit for approval (DRAFT/CHANGES_REQUESTED → PENDING_APPROVAL)
-    submitForApproval: builder.mutation<void, string>({
-      query: (courseId) => ({
+    submitForApproval: builder.mutation<void, { courseId: string; instructorNotes?: string }>({
+      query: ({ courseId, instructorNotes }) => ({
         url: `/instructor/courses/${courseId}/submit-for-approval`,
         method: 'POST',
+        body: { instructorNotes },
       }),
       invalidatesTags: ['InstructorCourses'],
     }),

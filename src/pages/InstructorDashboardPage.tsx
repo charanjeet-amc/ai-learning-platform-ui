@@ -273,8 +273,10 @@ export default function InstructorDashboardPage() {
                   {(course.status === 'DRAFT' || course.status === 'CHANGES_REQUESTED') && !isAdmin && (
                     <button
                       onClick={async () => {
+                        const notes = prompt('Add notes for the admin (what was changed/added):');
+                        if (notes === null) return;
                         try {
-                          await submitForApproval(course.id).unwrap();
+                          await submitForApproval({ courseId: course.id, instructorNotes: notes || undefined }).unwrap();
                           refetch();
                         } catch {
                           alert('Failed to submit for approval');

@@ -210,6 +210,14 @@ export default function AdminCourseReviewPage() {
                       <span>Previous feedback: {course.adminFeedback}</span>
                     </div>
                   )}
+
+                  {/* Instructor notes display */}
+                  {course.instructorNotes && (
+                    <div className="flex items-start gap-2 mt-2 p-2 rounded-md bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 text-xs">
+                      <MessageSquare className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                      <span>Instructor notes: {course.instructorNotes}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
