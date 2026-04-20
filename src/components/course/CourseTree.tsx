@@ -11,14 +11,20 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+export type TreeSelection =
+  | { type: 'module'; id: string }
+  | { type: 'topic'; id: string }
+  | { type: 'concept'; id: string }
+  | null;
+
 interface CourseTreeProps {
   course: Course;
-  activeConceptId: string | null;
-  onConceptSelect: (conceptId: string) => void;
+  selection: TreeSelection;
+  onSelect: (selection: TreeSelection) => void;
   progressMap?: Record<string, { mastery: number; status: string }>;
 }
 
-export default function CourseTree({ course, activeConceptId, onConceptSelect, progressMap = {} }: CourseTreeProps) {
+export default function CourseTree({ course, selection, onSelect, progressMap = {} }: CourseTreeProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(course.modules.map((m) => m.id)));
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
 
@@ -38,6 +44,20 @@ export default function CourseTree({ course, activeConceptId, onConceptSelect, p
       else next.add(id);
       return next;
     });
+  };
+
+  const handleModuleClick = (module: Module) => {
+    onSelect({ type: 'module', id: module.id });
+    if (!expandedModules.has(module.id)) {
+      setExpandedModules((prev) => new Set(prev).add(module.id));
+    }
+  };
+
+  const handleTopicClick = (topic: Topic) => {
+    onSelect({ type: 'topic', id: topic.id });
+    if (!expandedTopics.has(topic.id)) {
+      setExpandedTopics((prev) => new Set(prev).add(topic.id));
+    }
   };
 
   const getStatusIcon = (conceptId: string) => {
@@ -62,33 +82,57 @@ export default function CourseTree({ course, activeConceptId, onConceptSelect, p
         </h3>
         {course.modules.map((module: Module) => (
           <div key={module.id}>
-            <button
-              onClick={() => toggleModule(module.id)}
-              className="flex items-center gap-2 w-full px-2 py-2 rounded-md hover:bg-accent text-left text-sm font-medium"
-            >
-              {expandedModules.has(module.id) ? (
-                <ChevronDown className="h-4 w-4 shrink-0" />
-              ) : (
-                <ChevronRight className="h-4 w-4 shrink-0" />
-              )}
-              <span className="flex-1 truncate">{module.title}</span>
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => toggleModule(module.id)}
+                className="p-1 rounded hover:bg-accent shrink-0"
+              >
+                {expandedModules.has(module.id) ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={() => handleModuleClick(module)}
+                className={cn(
+                  'flex-1 px-2 py-2 rounded-md text-left text-sm font-medium truncate transition-colors',
+                  selection?.type === 'module' && selection.id === module.id
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-accent'
+                )}
+              >
+                {module.title}
+              </button>
+            </div>
 
             {expandedModules.has(module.id) && (
               <div className="ml-4">
                 {module.topics.map((topic: Topic) => (
                   <div key={topic.id}>
-                    <button
-                      onClick={() => toggleTopic(topic.id)}
-                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md hover:bg-accent text-left text-xs text-muted-foreground"
-                    >
-                      {expandedTopics.has(topic.id) ? (
-                        <ChevronDown className="h-3 w-3 shrink-0" />
-                      ) : (
-                        <ChevronRight className="h-3 w-3 shrink-0" />
-                      )}
-                      <span className="truncate">{topic.title}</span>
-                    </button>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => toggleTopic(topic.id)}
+                        className="p-0.5 rounded hover:bg-accent shrink-0"
+                      >
+                        {expandedTopics.has(topic.id) ? (
+                          <ChevronDown className="h-3 w-3" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleTopicClick(topic)}
+                        className={cn(
+                          'flex-1 px-2 py-1.5 rounded-md text-left text-xs truncate transition-colors',
+                          selection?.type === 'topic' && selection.id === topic.id
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'hover:bg-accent text-muted-foreground'
+                        )}
+                      >
+                        {topic.title}
+                      </button>
+                    </div>
 
                     {expandedTopics.has(topic.id) && (
                       <div className="ml-4 space-y-0.5">
@@ -97,10 +141,10 @@ export default function CourseTree({ course, activeConceptId, onConceptSelect, p
                           return (
                             <button
                               key={concept.id}
-                              onClick={() => onConceptSelect(concept.id)}
+                              onClick={() => onSelect({ type: 'concept', id: concept.id })}
                               className={cn(
                                 'flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-left text-xs transition-colors',
-                                activeConceptId === concept.id
+                                selection?.type === 'concept' && selection.id === concept.id
                                   ? 'bg-primary/10 text-primary font-medium'
                                   : 'hover:bg-accent text-foreground'
                               )}
