@@ -463,7 +463,15 @@ export default function CourseEditorPage() {
                           formData.append('file', file);
                           formData.append('folder', 'courses');
                           const result = await uploadMedia(formData).unwrap();
-                          await updateCourse({ courseId: courseId!, data: { title: course.title, thumbnailUrl: result.url } }).unwrap();
+                          await updateCourse({ courseId: courseId!, data: {
+                            title: course.title,
+                            description: course.description ?? '',
+                            shortDescription: course.shortDescription ?? '',
+                            difficulty: course.difficulty ?? 'BEGINNER',
+                            industryVertical: course.industryVertical ?? '',
+                            prerequisites: course.prerequisites ?? '',
+                            thumbnailUrl: result.url,
+                          } }).unwrap();
                           refetch();
                         } catch {
                           alert('Failed to upload image');
@@ -490,7 +498,15 @@ export default function CourseEditorPage() {
                         formData.append('file', file);
                         formData.append('folder', 'courses');
                         const result = await uploadMedia(formData).unwrap();
-                        await updateCourse({ courseId: courseId!, data: { title: course.title, thumbnailUrl: result.url } }).unwrap();
+                        await updateCourse({ courseId: courseId!, data: {
+                          title: course.title,
+                          description: course.description ?? '',
+                          shortDescription: course.shortDescription ?? '',
+                          difficulty: course.difficulty ?? 'BEGINNER',
+                          industryVertical: course.industryVertical ?? '',
+                          prerequisites: course.prerequisites ?? '',
+                          thumbnailUrl: result.url,
+                        } }).unwrap();
                         refetch();
                       } catch {
                         alert('Failed to upload image');
