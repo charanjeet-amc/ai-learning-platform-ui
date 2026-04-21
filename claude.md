@@ -3,6 +3,28 @@
 ## Product Vision
 Build the most advanced AI-powered learning platform that surpasses Coursera, Udemy, and DeepLearning.AI. AI-native adaptive learning — not video courses with AI bolted on.
 
+## Shared Context (Backend + Frontend)
+
+### API Contracts
+- Backend owns API contract truth: see backend `docs/api-contracts.md`.
+- Frontend must consume response/request fields exactly as defined by backend DTOs.
+- Critical contract mappings to preserve:
+  - AI tutor request: `query` (not `message`)
+  - AI tutor response: `message` (not `response`)
+  - Course/learning fields: `estimatedDurationMinutes`, `createdByName`, `contentType`
+- Any contract change must be updated in backend docs and reflected in frontend RTK Query slices and `src/types` in the same PR.
+
+### Cross-Cutting Decisions
+- Auth uses self-issued JWT (HMAC-SHA256); UI role-based routing/navigation must align with backend `roles` authorization.
+- Canonical learning graph is `Course -> Module -> Topic -> Concept -> LearningUnit`; UI tree and player must preserve that ordering.
+- Learning path semantics:
+  - `steps` represents all concepts for stable progress/mapping in UI.
+  - `nextConceptId` is recommendation-focused and may skip mastered concepts.
+- Deployment contract:
+  - UI backend endpoint comes from `VITE_API_URL`.
+  - Backend CORS and UI origin config must remain in sync.
+- Enum or field renames are cross-layer breaking changes and must be coordinated across backend DTOs, frontend types, and docs.
+
 ## Core Requirements (UI Perspective)
 1. **Course Catalog**: Search, filter by category/difficulty/duration. Course cards with ratings, enrollment counts.
 2. **Course Detail**: Full module/topic/concept tree view. Enroll button.
