@@ -220,7 +220,7 @@ export default function DashboardPage() {
                         <Progress value={course.progressPercent ?? 0} className="h-1.5" />
                       </div>
                     </Link>
-                    {(course.completed || (course.progressPercent ?? 0) >= 100) && (
+                    {(cert != null || (course.progressPercent ?? 0) >= 100) && (
                       <div className="mt-3 pt-3 border-t flex gap-2">
                         {cert ? (
                           <>
