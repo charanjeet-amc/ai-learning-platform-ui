@@ -31,9 +31,7 @@ export default function CourseDetailPage() {
   const [enroll, { isLoading: enrolling }] = useEnrollMutation();
   const [generateCertificate, { isLoading: generatingCert, data: certificate }] = useGenerateCertificateMutation();
 
-  const isCourseComplete = isEnrolled &&
-    (progress?.masteredConcepts ?? 0) === (progress?.totalConcepts ?? -1) &&
-    (progress?.totalConcepts ?? 0) > 0;
+  const isCourseComplete = Boolean(isEnrolled) && (progress?.overallProgress ?? 0) >= 100;
 
   if (isLoading || !course) {
     return (

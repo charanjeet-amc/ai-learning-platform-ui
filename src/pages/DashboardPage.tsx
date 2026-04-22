@@ -1,5 +1,5 @@
 import { useGetDashboardQuery } from '@/store/api/dashboardApi';
-import { useGetMyCertificatesQuery } from '@/store/api/certificateApi';
+import { useGetMyCertificatesQuery, useGenerateCertificateMutation } from '@/store/api/certificateApi';
 import { useGetMyBadgesQuery } from '@/store/api/gamificationApi';
 import { useGetReviewQueueQuery } from '@/store/api/assessmentApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,8 +28,10 @@ export default function DashboardPage() {
   const { data: badges } = useGetMyBadgesQuery();
   const { data: reviewQueue } = useGetReviewQueueQuery();
   const { data: certificates } = useGetMyCertificatesQuery();
+  const [generateCertificate] = useGenerateCertificateMutation();
 
   const apiBase = import.meta.env.VITE_API_URL ?? '';
+  const certMap = new Map(certificates?.map((c) => [c.courseId, c]) ?? []);
 
   if (isLoading || !dashboard) {
     return (
@@ -193,35 +195,64 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dashboard.enrolledCourses.map((course) => (
-                <Link
-                  key={course.courseId}
-                  to={`/courses/${course.courseId}/learn`}
-                  className="block group"
-                >
-                  <div className="rounded-lg border p-4 hover:shadow-md transition-all">
-                    <div className="aspect-video rounded-md bg-muted mb-3 overflow-hidden">
-                      {course.thumbnailUrl ? (
-                        <img src={course.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                          <BookOpen className="h-8 w-8 text-primary/30" />
-                        </div>
-                      )}
-                    </div>
-                    <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-1">
-                      {course.courseTitle}
-                    </h4>
-                    <div className="mt-2">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{Math.round(course.progressPercent ?? 0)}%</span>
+              {dashboard.enrolledCourses.map((course) => {
+                const cert = certMap.get(course.courseId);
+                return (
+                  <div key={course.courseId} className="rounded-lg border p-4 hover:shadow-md transition-all">
+                    <Link to={`/courses/${course.courseId}/learn`} className="block group">
+                      <div className="aspect-video rounded-md bg-muted mb-3 overflow-hidden">
+                        {course.thumbnailUrl ? (
+                          <img src={course.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                            <BookOpen className="h-8 w-8 text-primary/30" />
+                          </div>
+                        )}
                       </div>
-                      <Progress value={course.progressPercent ?? 0} className="h-1.5" />
-                    </div>
+                      <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-1">
+                        {course.courseTitle}
+                      </h4>
+                      <div className="mt-2">
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium">{Math.round(course.progressPercent ?? 0)}%</span>
+                        </div>
+                        <Progress value={course.progressPercent ?? 0} className="h-1.5" />
+                      </div>
+                    </Link>
+                    {course.completed && (
+                      <div className="mt-3 pt-3 border-t flex gap-2">
+                        {cert ? (
+                          <>
+                            <Link to={`/certificates/${cert.verificationCode}`} className="flex-1">
+                              <Button variant="outline" size="sm" className="w-full text-xs border-yellow-500/60 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950">
+                                <Award className="h-3 w-3 mr-1" /> View Certificate
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs px-2"
+                              onClick={() => window.open(`${apiBase}/api/public/certificates/${cert.verificationCode}/download`, '_blank')}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs border-yellow-500/60 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                            onClick={() => generateCertificate(course.courseId)}
+                          >
+                            <Award className="h-3 w-3 mr-1" /> Get Certificate
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
