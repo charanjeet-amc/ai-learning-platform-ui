@@ -67,7 +67,7 @@ export default function CertificateVerifyPage() {
     );
   }
 
-  const issuedDate = new Date(cert.issuedAt).toLocaleDateString('en-US', {
+  const issuedDate = new Date(cert.completedAt ?? cert.issuedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
