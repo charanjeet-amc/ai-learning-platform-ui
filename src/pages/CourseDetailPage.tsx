@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGetCourseTreeQuery, useGetCourseProgressQuery } from '@/store/api/courseApi';
 import { useEnrollMutation, useIsEnrolledQuery } from '@/store/api/enrollmentApi';
-import { useGenerateCertificateMutation } from '@/store/api/certificateApi';
+import { useGenerateCertificateMutation, useGetMyCertificatesQuery } from '@/store/api/certificateApi';
 import { useAppSelector } from '@/store/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,9 @@ export default function CourseDetailPage() {
   const { data: isEnrolled } = useIsEnrolledQuery(courseId!, { skip: !token });
   const { data: progress } = useGetCourseProgressQuery(courseId!, { skip: !token || !isEnrolled });
   const [enroll, { isLoading: enrolling }] = useEnrollMutation();
-  const [generateCertificate, { isLoading: generatingCert, data: certificate }] = useGenerateCertificateMutation();
+  const { data: myCertificates } = useGetMyCertificatesQuery(undefined, { skip: !token });
+  const [generateCertificate, { isLoading: generatingCert, data: newCertificate }] = useGenerateCertificateMutation();
+  const certificate = myCertificates?.find(c => c.courseId === courseId) ?? newCertificate;
 
   const isCourseComplete = Boolean(isEnrolled) && (progress?.overallProgress ?? 0) >= 100;
 
