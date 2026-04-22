@@ -244,6 +244,20 @@ export interface LearningPath {
   nextConceptTitle?: string;
 }
 
+// ==================== Certificate ====================
+export interface Certificate {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  courseThumbnailUrl: string;
+  userName: string;
+  verificationCode: string;
+  verificationUrl: string;
+  issuedAt: string;
+  completedAt: string;
+  progressPercent: number;
+}
+
 // ==================== Review Queue ====================
 export interface ReviewItem {
   userId: string;

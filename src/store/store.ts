@@ -12,6 +12,7 @@ import { instructorApi } from './api/instructorApi';
 import { instructorApplicationApi } from './api/instructorApplicationApi';
 import { adminCourseApi } from './api/adminCourseApi';
 import { userApi } from './api/userApi';
+import { certificateApi } from './api/certificateApi';
 import authReducer from './slices/authSlice';
 import uiReducer from './slices/uiSlice';
 
@@ -32,6 +33,7 @@ export const store = configureStore({
     [instructorApplicationApi.reducerPath]: instructorApplicationApi.reducer,
     [adminCourseApi.reducerPath]: adminCourseApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
+    [certificateApi.reducerPath]: certificateApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -48,6 +50,7 @@ export const store = configureStore({
       instructorApplicationApi.middleware,
       adminCourseApi.middleware,
       userApi.middleware,
+      certificateApi.middleware,
     ),
 });
 

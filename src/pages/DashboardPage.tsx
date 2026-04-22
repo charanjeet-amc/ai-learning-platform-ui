@@ -1,4 +1,5 @@
 import { useGetDashboardQuery } from '@/store/api/dashboardApi';
+import { useGetMyCertificatesQuery } from '@/store/api/certificateApi';
 import { useGetMyBadgesQuery } from '@/store/api/gamificationApi';
 import { useGetReviewQueueQuery } from '@/store/api/assessmentApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +9,14 @@ import BadgeDisplay from '@/components/gamification/BadgeDisplay';
 import StreakTracker from '@/components/gamification/StreakTracker';
 import { Link } from 'react-router-dom';
 import {
+  Award,
   BookOpen,
   Brain,
   Flame,
   Trophy,
   AlertTriangle,
   ArrowRight,
+  Download,
   Sparkles,
   RotateCcw,
 } from 'lucide-react';
@@ -24,6 +27,9 @@ export default function DashboardPage() {
   const { data: dashboard, isLoading } = useGetDashboardQuery();
   const { data: badges } = useGetMyBadgesQuery();
   const { data: reviewQueue } = useGetReviewQueueQuery();
+  const { data: certificates } = useGetMyCertificatesQuery();
+
+  const apiBase = import.meta.env.VITE_API_URL ?? '';
 
   if (isLoading || !dashboard) {
     return (
@@ -220,6 +226,53 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Certificates */}
+      {certificates && certificates.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Award className="h-5 w-5 text-yellow-500" />
+              My Certificates
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {certificates.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="rounded-lg border border-yellow-500/30 bg-gradient-to-br from-indigo-950/40 to-purple-950/20 p-4 space-y-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <Award className="h-8 w-8 text-yellow-500 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm line-clamp-2">{cert.courseTitle}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link to={`/certificates/${cert.verificationCode}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full text-xs border-yellow-500/40 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950">
+                        View
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => window.open(`${apiBase}/api/public/certificates/${cert.verificationCode}/download`, '_blank')}
+                    >
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Badges */}
       {badges && badges.length > 0 && (

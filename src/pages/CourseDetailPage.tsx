@@ -1,11 +1,13 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGetCourseTreeQuery, useGetCourseProgressQuery } from '@/store/api/courseApi';
 import { useEnrollMutation, useIsEnrolledQuery } from '@/store/api/enrollmentApi';
+import { useGenerateCertificateMutation } from '@/store/api/certificateApi';
 import { useAppSelector } from '@/store/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
+  Award,
   BookOpen,
   Clock,
   Star,
@@ -27,6 +29,11 @@ export default function CourseDetailPage() {
   const { data: isEnrolled } = useIsEnrolledQuery(courseId!, { skip: !token });
   const { data: progress } = useGetCourseProgressQuery(courseId!, { skip: !token || !isEnrolled });
   const [enroll, { isLoading: enrolling }] = useEnrollMutation();
+  const [generateCertificate, { isLoading: generatingCert, data: certificate }] = useGenerateCertificateMutation();
+
+  const isCourseComplete = isEnrolled &&
+    (progress?.masteredConcepts ?? 0) === (progress?.totalConcepts ?? -1) &&
+    (progress?.totalConcepts ?? 0) > 0;
 
   if (isLoading || !course) {
     return (
@@ -155,12 +162,34 @@ export default function CourseDetailPage() {
                   </p>
                 </div>
               ) : isEnrolled ? (
-                <Link to={`/courses/${courseId}/learn`} className="block">
-                  <Button className="w-full" size="lg">
-                    <Play className="h-5 w-5 mr-2" />
-                    Continue Learning
-                  </Button>
-                </Link>
+                <div className="space-y-2">
+                  <Link to={`/courses/${courseId}/learn`} className="block">
+                    <Button className="w-full" size="lg">
+                      <Play className="h-5 w-5 mr-2" />
+                      {isCourseComplete ? 'Review Course' : 'Continue Learning'}
+                    </Button>
+                  </Link>
+                  {isCourseComplete && (
+                    certificate ? (
+                      <Link to={`/certificates/${certificate.verificationCode}`} className="block">
+                        <Button variant="outline" className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950">
+                          <Award className="h-5 w-5 mr-2" />
+                          View Certificate
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                        onClick={() => generateCertificate(courseId!)}
+                        disabled={generatingCert}
+                      >
+                        <Award className="h-5 w-5 mr-2" />
+                        {generatingCert ? 'Generating...' : 'Get Certificate'}
+                      </Button>
+                    )
+                  )}
+                </div>
               ) : (
                 <Button
                   className="w-full"
