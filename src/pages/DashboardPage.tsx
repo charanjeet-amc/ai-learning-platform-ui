@@ -279,7 +279,7 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <p className="font-medium text-sm line-clamp-2">{cert.courseTitle}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {new Date(cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {new Date(cert.completedAt ?? cert.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </p>
                     </div>
                   </div>
