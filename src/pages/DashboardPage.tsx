@@ -150,22 +150,28 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {reviewQueue.slice(0, 5).map((item) => (
-                <div key={item.conceptId} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{item.conceptTitle}</p>
+                <Link
+                  key={item.conceptId}
+                  to={`/courses/${item.courseId}/learn?review=${item.conceptId}`}
+                  className="flex items-center gap-3 rounded-lg border px-3 py-2 hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                      {item.conceptTitle}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Mastery: {Math.round(item.masteryLevel * 100)}%
                     </p>
                   </div>
-                  <div className="w-24">
+                  <div className="w-20 shrink-0">
                     <Progress value={item.masteryLevel * 100} className="h-1.5" />
                   </div>
-                  <span className={cn('text-xs font-medium', getMasteryColor(item.masteryLevel))}>
-                    Review
+                  <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 shrink-0">
+                    Review →
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>

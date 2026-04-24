@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useGetCourseTreeQuery } from '@/store/api/courseApi';
 import { useGetQuestionsQuery } from '@/store/api/assessmentApi';
 import { useGetLearningPathQuery } from '@/store/api/learningPathApi';
@@ -43,6 +43,7 @@ function buildNavOrder(course: Course, hasQuiz: (conceptId: string) => boolean):
 
 export default function CoursePlayerPage() {
   const { courseId } = useParams<{ courseId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const aiPanelOpen = useAppSelector((s) => s.ui.aiPanelOpen);
   const activeConceptId = useAppSelector((s) => s.ui.activeConceptId);
@@ -68,12 +69,32 @@ export default function CoursePlayerPage() {
   }, [learningPath]);
   const [selection, setSelection] = useState<TreeSelection>(null);
 
-  // Auto-select first module when course loads
+  // Auto-select first module when course loads (skip if review param will handle it)
   useEffect(() => {
-    if (course && course.modules.length > 0 && !selection) {
+    if (course && course.modules.length > 0 && !selection && !searchParams.get('review')) {
       setSelection({ type: 'module', id: course.modules[0]!.id });
     }
   }, [course]);
+
+  // When ?review=conceptId is present, jump directly to that concept's quiz
+  useEffect(() => {
+    const reviewConceptId = searchParams.get('review');
+    if (!course || !reviewConceptId) return;
+    // Find the concept in the tree
+    for (const m of course.modules) {
+      for (const t of m.topics) {
+        const concept = t.concepts.find((c) => c.id === reviewConceptId);
+        if (concept) {
+          dispatch(setActiveConcept(reviewConceptId));
+          setSelection({ type: 'concept', id: reviewConceptId });
+          setActiveTab('quiz');
+          // Clear the param so normal navigation works afterwards
+          setSearchParams({}, { replace: true });
+          return;
+        }
+      }
+    }
+  }, [course, searchParams]);
 
   // Track which concepts have quizzes (we only know for the active one via RTK query)
   // For nav, we'll check when stepping: if the concept IS the active one and has questions, show quiz

@@ -261,6 +261,7 @@ export interface Certificate {
 // ==================== Review Queue ====================
 export interface ReviewItem {
   userId: string;
+  courseId: string;
   conceptId: string;
   conceptTitle: string;
   masteryLevel: number;
