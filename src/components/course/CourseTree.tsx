@@ -8,6 +8,7 @@ import {
   Circle,
   PlayCircle,
   AlertCircle,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +22,7 @@ interface CourseTreeProps {
   course: Course;
   selection: TreeSelection;
   onSelect: (selection: TreeSelection) => void;
-  progressMap?: Record<string, { mastery: number; status: string }>;
+  progressMap?: Record<string, { mastery: number; status: string; fastTracked?: boolean }>;
 }
 
 export default function CourseTree({ course, selection, onSelect, progressMap = {} }: CourseTreeProps) {
@@ -137,7 +138,9 @@ export default function CourseTree({ course, selection, onSelect, progressMap = 
                     {expandedTopics.has(topic.id) && (
                       <div className="ml-4 space-y-0.5">
                         {topic.concepts.map((concept: Concept) => {
-                          const mastery = progressMap[concept.id]?.mastery ?? 0;
+                          const progress = progressMap[concept.id];
+                          const mastery = progress?.mastery ?? 0;
+                          const isFastTracked = progress?.fastTracked === true;
                           return (
                             <button
                               key={concept.id}
@@ -151,6 +154,9 @@ export default function CourseTree({ course, selection, onSelect, progressMap = 
                             >
                               {getStatusIcon(concept.id)}
                               <span className="flex-1 truncate">{concept.title}</span>
+                              {isFastTracked && (
+                                <Zap className="h-3 w-3 text-yellow-500 shrink-0" title="Fast-tracked" />
+                              )}
                               {mastery > 0 && (
                                 <span className="text-[10px] text-muted-foreground">{Math.round(mastery * 100)}%</span>
                               )}

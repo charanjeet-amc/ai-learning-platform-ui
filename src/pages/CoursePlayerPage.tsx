@@ -58,11 +58,12 @@ export default function CoursePlayerPage() {
   // Build progressMap from learningPath steps
   const progressMap = useMemo(() => {
     if (!learningPath?.steps) return {};
-    const map: Record<string, { mastery: number; status: string }> = {};
+    const map: Record<string, { mastery: number; status: string; fastTracked?: boolean }> = {};
     for (const step of learningPath.steps) {
       map[step.conceptId] = {
         mastery: step.masteryLevel ?? 0,
         status: step.status ?? 'NOT_STARTED',
+        fastTracked: step.fastTracked ?? false,
       };
     }
     return map;
@@ -272,6 +273,11 @@ export default function CoursePlayerPage() {
               <span className="truncate">Up next: {learningPath.nextConceptTitle}</span>
             </button>
             <p className="text-[10px] text-muted-foreground mt-1">Recommended concept based on your progress</p>
+            {learningPath.sessionConceptLimit != null && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Suggested session: {learningPath.sessionConceptLimit} concepts
+              </p>
+            )}
             <div className="flex items-center gap-2 mt-1.5">
               <Progress value={learningPath.totalSteps > 0 ? (learningPath.completedSteps / learningPath.totalSteps) * 100 : 0} className="h-1 flex-1" />
               <span className="text-[10px] text-muted-foreground" title={`${learningPath.completedSteps} concepts mastered out of ${learningPath.totalSteps} total`}>{learningPath.completedSteps}/{learningPath.totalSteps} mastered</span>
@@ -347,9 +353,12 @@ export default function CoursePlayerPage() {
 
               <TabsContent value="quiz">
                 {questions && questions.length > 0 ? (
-                  <QuizView questions={questions} onComplete={() => {
-                    // After quiz, advance to next
-                    handleNext();
+                  <QuizView questions={questions} conceptId={activeConceptId ?? undefined} onComplete={() => {
+                    if (isAtEnd) {
+                      setActiveTab('learn');
+                    } else {
+                      handleNext();
+                    }
                   }} />
                 ) : (
                   <div className="text-center py-16 text-muted-foreground">

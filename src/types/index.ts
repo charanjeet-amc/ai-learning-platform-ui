@@ -151,6 +151,7 @@ export interface AnswerResult {
   nextAction: string;
   xpEarned: number;
   nextConceptId?: string;
+  fastTracked?: boolean;
 }
 
 // ==================== Gamification ====================
@@ -232,6 +233,7 @@ export interface LearningPathStep {
   status: ConceptStatus;
   masteryLevel: number;
   reason: string;
+  fastTracked?: boolean;
 }
 
 export interface LearningPath {
@@ -242,6 +244,7 @@ export interface LearningPath {
   completedSteps: number;
   nextConceptId?: string;
   nextConceptTitle?: string;
+  sessionConceptLimit?: number;
 }
 
 // ==================== Certificate ====================

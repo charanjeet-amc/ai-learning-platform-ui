@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Question, AnswerResult } from '@/types';
-import { useSubmitAnswerMutation } from '@/store/api/assessmentApi';
+import { useSubmitAnswerMutation, useGenerateAIQuestionsMutation } from '@/store/api/assessmentApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -15,20 +15,24 @@ import {
   FileText,
   BookOpen,
   ListChecks,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface QuizViewProps {
   questions: Question[];
+  conceptId?: string;
   onComplete?: (results: AnswerResult[]) => void;
 }
 
-export default function QuizView({ questions, onComplete }: QuizViewProps) {
+export default function QuizView({ questions: initialQuestions, conceptId, onComplete }: QuizViewProps) {
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [results, setResults] = useState<AnswerResult[]>([]);
   const [submitAnswer, { isLoading }] = useSubmitAnswerMutation();
+  const [generateAIQuestions, { isLoading: isGenerating }] = useGenerateAIQuestionsMutation();
 
   const question = questions[currentIndex];
   const isComplete = currentIndex >= questions.length;
@@ -57,8 +61,35 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
               <p className="text-xs text-muted-foreground">XP Earned</p>
             </div>
           </div>
+          {conceptId && (
+            <div className="mt-6 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4 max-w-sm mx-auto text-center">
+              <p className="text-xs text-muted-foreground mb-3">
+                Want more practice? Generate a fresh set of questions tailored to your current level using AI.
+              </p>
+              <Button
+                variant="outline"
+                disabled={isGenerating}
+                className="w-full"
+                onClick={async () => {
+                  try {
+                    const newQuestions = await generateAIQuestions(conceptId).unwrap();
+                    setQuestions(newQuestions);
+                    setCurrentIndex(0);
+                    setResults([]);
+                    setSelectedAnswer(null);
+                    setResult(null);
+                  } catch {
+                    // silently ignore
+                  }
+                }}
+              >
+                <Sparkles className="h-4 w-4 mr-1" />
+                {isGenerating ? 'Generating...' : 'Generate AI Questions'}
+              </Button>
+            </div>
+          )}
           {onComplete && (
-            <Button className="mt-6" onClick={() => onComplete(results)}>
+            <Button className="mt-4" onClick={() => onComplete(results)}>
               Continue Learning <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           )}
@@ -235,6 +266,11 @@ export default function QuizView({ questions, onComplete }: QuizViewProps) {
                   'bg-red-100 text-red-700'
                 )}>
                   Score: {Math.round(result.score * 100)}%
+                </span>
+              )}
+              {result.fastTracked && (
+                <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 font-medium">
+                  <Zap className="h-3.5 w-3.5" /> Fast-tracked!
                 </span>
               )}
               {result.xpEarned > 0 && (
