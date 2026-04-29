@@ -29,6 +29,13 @@ export const enrollmentApi = createApi({
       }),
       invalidatesTags: ['Enrollment'],
     }),
+    trackConceptVisit: builder.mutation<void, { courseId: string; conceptId: string }>({
+      query: ({ courseId, conceptId }) => ({
+        url: `/enrollments/${courseId}/last-visited`,
+        method: 'PUT',
+        body: { conceptId },
+      }),
+    }),
   }),
 });
 
@@ -37,4 +44,5 @@ export const {
   useIsEnrolledQuery,
   useEnrollMutation,
   useUnenrollMutation,
+  useTrackConceptVisitMutation,
 } = enrollmentApi;

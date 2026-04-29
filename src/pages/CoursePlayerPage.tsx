@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useGetCourseTreeQuery } from '@/store/api/courseApi';
 import { useGetQuestionsQuery } from '@/store/api/assessmentApi';
 import { useGetLearningPathQuery } from '@/store/api/learningPathApi';
+import { useTrackConceptVisitMutation } from '@/store/api/enrollmentApi';
 import CourseTree from '@/components/course/CourseTree';
 import type { TreeSelection } from '@/components/course/CourseTree';
 import ContentViewer from '@/components/course/ContentViewer';
@@ -50,7 +51,8 @@ export default function CoursePlayerPage() {
 
   const { data: course, isLoading } = useGetCourseTreeQuery(courseId!);
   const { data: questions } = useGetQuestionsQuery(activeConceptId!, { skip: !activeConceptId });
-  const { data: learningPath } = useGetLearningPathQuery(courseId!, { skip: !courseId });
+  const { data: learningPath, isSuccess: learningPathLoaded } = useGetLearningPathQuery(courseId!, { skip: !courseId });
+  const [trackConceptVisit] = useTrackConceptVisitMutation();
 
   const [activeLearningUnit, setActiveLearningUnit] = useState<LearningUnit | null>(null);
   const [activeTab, setActiveTab] = useState('learn');
@@ -70,12 +72,18 @@ export default function CoursePlayerPage() {
   }, [learningPath]);
   const [selection, setSelection] = useState<TreeSelection>(null);
 
-  // Auto-select first module when course loads (skip if review param will handle it)
+  // Session restore — wait for both course and learning path before deciding where to navigate.
+  // If lastVisitedConceptId is set, resume there; otherwise fall back to first module.
   useEffect(() => {
-    if (course && course.modules.length > 0 && !selection && !searchParams.get('review')) {
+    if (!course || selection || searchParams.get('review')) return;
+    if (!learningPathLoaded) return;
+    if (learningPath?.lastVisitedConceptId) {
+      dispatch(setActiveConcept(learningPath.lastVisitedConceptId));
+      setSelection({ type: 'concept', id: learningPath.lastVisitedConceptId });
+    } else if (course.modules.length > 0) {
       setSelection({ type: 'module', id: course.modules[0]!.id });
     }
-  }, [course]);
+  }, [course, learningPathLoaded]);
 
   // When ?review=conceptId is present, jump directly to that concept's quiz
   useEffect(() => {
@@ -196,6 +204,7 @@ export default function CoursePlayerPage() {
       dispatch(setActiveConcept(node.id));
       setActiveLearningUnit(null);
       setActiveTab('learn');
+      if (courseId) trackConceptVisit({ courseId, conceptId: node.id });
     }
   };
 
@@ -203,6 +212,7 @@ export default function CoursePlayerPage() {
     setSelection(sel);
     if (sel?.type === 'concept') {
       dispatch(setActiveConcept(sel.id));
+      if (courseId) trackConceptVisit({ courseId, conceptId: sel.id });
     } else {
       dispatch(setActiveConcept(''));
     }

@@ -152,6 +152,8 @@ export interface AnswerResult {
   xpEarned: number;
   nextConceptId?: string;
   fastTracked?: boolean;
+  misconceptionTriggered?: boolean;
+  misconceptionText?: string;
 }
 
 // ==================== Gamification ====================
@@ -245,6 +247,8 @@ export interface LearningPath {
   nextConceptId?: string;
   nextConceptTitle?: string;
   sessionConceptLimit?: number;
+  lastVisitedConceptId?: string;
+  lastVisitedConceptTitle?: string;
 }
 
 // ==================== Certificate ====================
